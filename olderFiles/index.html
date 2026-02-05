@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Journal Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <!-- Compact Header Bar -->
+    <div id="header-bar" style="position: fixed; top: 10px; left: 20px; right: 20px; height: 60px; background: rgba(25, 25, 30, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; padding: 8px 16px; z-index: 1000; display: flex; align-items: center; gap: 16px;">
+        
+        <!-- Profile Picture -->
+        <div id="profile-image-container" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(128, 128, 128, 0.5); overflow: hidden; cursor: pointer; background: rgba(128, 128, 128, 0.2); display: flex; align-items: center; justify-content: center; font-size: 24px; color: rgba(128, 128, 128, 0.8); flex-shrink: 0;">
+            👤
+        </div>
+        <input type="file" id="profile-image-input" accept="image/*" style="display: none;">
+        
+        <!-- User Info Column -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 150px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">USER:</span>
+                <div id="header-username" contenteditable="true" style="font-size: 12px; font-weight: 700; color: #fff; border: 1px solid transparent; padding: 2px 4px; border-radius: 3px; outline: none; cursor: text;">undefined</div>
+            </div>
+            <div id="header-description" contenteditable="true" style="font-size: 10px; color: rgba(255, 255, 255, 0.5); border: 1px solid transparent; padding: 2px 4px; border-radius: 3px; outline: none; cursor: text; min-width: 100px;">Add description...</div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- Primary Space Info Column -->
+        <div style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+            <div style="font-size: 9px; font-weight: 700; color: #fff; letter-spacing: 0.5px; margin-bottom: 2px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">PRIMARY SPACE</div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <div id="session-timer" style="font-size: 11px; font-weight: 700; color: #fff; font-family: 'Courier New', monospace;">00:00:00.000</div>
+                    <div id="fps-counter" style="font-size: 9px; font-weight: 600; color: rgba(255, 255, 255, 0.6);">FPS: 60</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- Coordinate Guide: Position -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 120px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">POS</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255, 255, 255, 0.8);">
+                <div id="coord-pos-x">X: 0.00</div>
+                <div id="coord-pos-y">Y: 0.00</div>
+                <div id="coord-pos-z">Z: 0.00</div>
+            </div>
+        </div>
+        
+        <!-- Coordinate Guide: Rotation -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 120px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">ROT</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255, 255, 255, 0.8);">
+                <div id="coord-rot-x">X: 0.00°</div>
+                <div id="coord-rot-y">Y: 0.00°</div>
+                <div id="coord-rot-z">Z: 0.00°</div>
+            </div>
+        </div>
+        
+        <!-- Coordinate Guide: Scale -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 120px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">SCA</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255, 255, 255, 0.8);">
+                <div id="coord-sca-x">X: 1.00</div>
+                <div id="coord-sca-y">Y: 1.00</div>
+                <div id="coord-sca-z">Z: 1.00</div>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- Quick Actions Bar -->
+        <div style="display: flex; gap: 6px; flex: 1; overflow-x: auto; padding: 4px 0;">
+            <div style="font-size: 9px; font-weight: 700; color: #fff; letter-spacing: 0.5px; align-self: center; margin-right: 4px; flex-shrink: 0; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">QUICK ACTIONS</div>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 1</button>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 2</button>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 3</button>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 4</button>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 5</button>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 6</button>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 7</button>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 8</button>
+            <button class="quick-action-btn" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">BTN 9</button>
+        </div>
+    </div>
+
+    <!-- Top Right Search Panel -->
+    <div id="search-panel" class="collapsed">
+        <div class="search-icon">🔍</div>
+        <div class="search-content">
+            <input type="text" class="search-input" placeholder="Search..." id="search-input">
+        </div>
+    </div>
+
+    <!-- Camera Rotation Circle -->
+    <div id="camera-circle"></div>
+
+    <!-- Hamburger Menu Buttons -->
+    <div class="hamburger-btn" id="left-hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="hamburger-btn" id="right-hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Left Side Menu (Admin/System) -->
+    <div class="side-menu" id="left-menu">
+        <div class="menu-header">
+            <div class="menu-title">ADMIN & SYSTEM</div>
+        </div>
+        <div class="breadcrumb" id="left-breadcrumb">
+            <span class="breadcrumb-item breadcrumb-current">Admin & System</span>
+        </div>
+        <div class="menu-items">
+            <div class="menu-item" data-page="admin">
+                <div class="menu-item-header">
+                    <span>Admin</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="admin-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="admin-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="admin-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="admin-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="admin-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="admin-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="admin-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="admin-07">UI Transparency</div>
+                    <div class="submenu-item" data-submenu="admin-08">Particle Behavior</div>
+                    <div class="submenu-item has-children" data-submenu="admin-theme">
+                        Theme
+                        <span class="expand-icon">▶</span>
+                    </div>
+                    <div class="submenu-item has-children" data-submenu="admin-restart">
+                        Restart App
+                        <span class="expand-icon">▶</span>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="system">
+                <div class="menu-item-header">
+                    <span>Systems</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="system-00" style="flex-direction: column; align-items: flex-start; padding: 12px;">
+                        <div style="margin-bottom: 8px; font-weight: 600;">UI Transparency</div>
+                        <input type="range" id="ui-transparency-slider" min="0" max="100" value="100" 
+                               style="width: 100%; cursor: pointer;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; font-size: 10px; margin-top: 4px;">
+                            <span>Hidden</span>
+                            <span id="transparency-value">100%</span>
+                            <span>Opaque</span>
+                        </div>
+                    </div>
+                    <div class="submenu-item" data-submenu="system-01">MySpace</div>
+                    <div class="submenu-item" data-submenu="system-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="system-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="system-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="system-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="system-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="system-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="system-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="system-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="system-10">subMenuItem10</div>
+                    <div class="submenu-item" data-submenu="system-11">NAV</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="experiences">
+                <div class="menu-item-header">
+                    <span>Experiences</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="experiences-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="experiences-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="experiences-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="experiences-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="experiences-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="experiences-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="experiences-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="experiences-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="experiences-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="experiences-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="experiences-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="perspectives">
+                <div class="menu-item-header">
+                    <span>Perspectives</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="perspectives-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="perspectives-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="perspectives-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="perspectives-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="perspectives-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="perspectives-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="perspectives-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="perspectives-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="perspectives-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="perspectives-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="perspectives-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="times">
+                <div class="menu-item-header">
+                    <span>Times</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="times-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="times-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="times-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="times-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="times-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="times-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="times-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="times-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="times-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="times-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="times-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="space">
+                <div class="menu-item-header">
+                    <span>Spaces</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="space-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="space-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="space-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="space-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="space-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="space-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="space-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="space-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="space-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="space-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="space-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="objects">
+                <div class="menu-item-header">
+                    <span>Objects</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="objects-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="objects-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="objects-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="objects-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="objects-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="objects-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="objects-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="objects-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="objects-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="objects-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="objects-10">subMenuItem10</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side Menu (Site Pages) -->
+    <div class="side-menu" id="right-menu">
+        <div class="menu-header">
+            <div class="menu-title">NAVIGATION</div>
+        </div>
+        <div class="breadcrumb" id="right-breadcrumb">
+            <span class="breadcrumb-item breadcrumb-current">Navigation</span>
+        </div>
+        <div class="menu-items">
+            <div class="menu-item active" data-page="home">
+                <div class="menu-item-header">
+                    <span>Home</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="home-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="home-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="home-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="home-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="home-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="home-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="home-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="home-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="home-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="home-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="home-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="about">
+                <div class="menu-item-header">
+                    <span>About Me</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="about-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="about-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="about-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="about-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="about-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="about-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="about-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="about-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="about-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="about-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="about-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="portfolio">
+                <div class="menu-item-header">
+                    <span>Portfolio</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="portfolio-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="portfolio-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="portfolio-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="portfolio-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="portfolio-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="portfolio-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="portfolio-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="portfolio-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="portfolio-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="portfolio-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="portfolio-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="products">
+                <div class="menu-item-header">
+                    <span>Products</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="products-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="products-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="products-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="products-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="products-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="products-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="products-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="products-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="products-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="products-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="products-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="services">
+                <div class="menu-item-header">
+                    <span>Services</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="services-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="services-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="services-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="services-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="services-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="services-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="services-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="services-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="services-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="services-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="services-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="resources">
+                <div class="menu-item-header">
+                    <span>Resources</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="resources-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="resources-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="resources-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="resources-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="resources-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="resources-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="resources-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="resources-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="resources-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="resources-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="resources-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="supporters">
+                <div class="menu-item-header">
+                    <span>Supporters</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="supporters-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="supporters-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="supporters-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="supporters-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="supporters-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="supporters-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="supporters-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="supporters-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="supporters-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="supporters-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="supporters-10">subMenuItem10</div>
+                </div>
+            </div>
+            <div class="menu-item" data-page="contact">
+                <div class="menu-item-header">
+                    <span>Contact</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="contact-00">subMenuItem00</div>
+                    <div class="submenu-item" data-submenu="contact-01">subMenuItem01</div>
+                    <div class="submenu-item" data-submenu="contact-02">subMenuItem02</div>
+                    <div class="submenu-item" data-submenu="contact-03">subMenuItem03</div>
+                    <div class="submenu-item" data-submenu="contact-04">subMenuItem04</div>
+                    <div class="submenu-item" data-submenu="contact-05">subMenuItem05</div>
+                    <div class="submenu-item" data-submenu="contact-06">subMenuItem06</div>
+                    <div class="submenu-item" data-submenu="contact-07">subMenuItem07</div>
+                    <div class="submenu-item" data-submenu="contact-08">subMenuItem08</div>
+                    <div class="submenu-item" data-submenu="contact-09">subMenuItem09</div>
+                    <div class="submenu-item" data-submenu="contact-10">subMenuItem10</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docks -->
+    <div class="dock hidden" id="dock-bottom">
+        <div class="dock-item" draggable="true" data-item="1">D1</div>
+        <div class="dock-item" draggable="true" data-item="2">D2</div>
+        <div class="dock-item" draggable="true" data-item="3">D3</div>
+        <div class="dock-item" draggable="true" data-item="4">D4</div>
+        <div class="dock-item" draggable="true" data-item="5">D5</div>
+    </div>
+
+    <div class="dock hidden" id="dock-top">
+        <div class="dock-item" draggable="true" data-item="6">D6</div>
+        <div class="dock-item" draggable="true" data-item="7">D7</div>
+        <div class="dock-item" draggable="true" data-item="8">D8</div>
+    </div>
+
+    <div class="dock hidden" id="dock-left">
+        <div class="dock-item" draggable="true" data-item="9">D9</div>
+        <div class="dock-item" draggable="true" data-item="10">D10</div>
+        <div class="dock-item" draggable="true" data-item="11">D11</div>
+    </div>
+
+    <div class="dock hidden" id="dock-right">
+        <div class="dock-item" draggable="true" data-item="12">D12</div>
+        <div class="dock-item" draggable="true" data-item="13">D13</div>
+        <div class="dock-item" draggable="true" data-item="14">D14</div>
+    </div>
+
+    <!-- Restart Prompt Modal -->
+    <div class="prompt-modal" id="restart-prompt">
+        <button class="prompt-close" onclick="document.getElementById('restart-prompt').classList.remove('visible')">×</button>
+        <div class="prompt-title">Restart Application?</div>
+        <div class="prompt-message">Are you sure you want to restart the application? All unsaved progress will be lost.</div>
+        <div class="prompt-buttons">
+            <button class="prompt-btn" onclick="location.reload()">Yes</button>
+            <button class="prompt-btn" onclick="document.getElementById('restart-prompt').classList.remove('visible')">No</button>
+            <button class="prompt-btn" onclick="showWisdomPrompt()">Not Sure</button>
+        </div>
+    </div>
+
+    <!-- Wisdom Prompt Modal -->
+    <div class="prompt-modal" id="wisdom-prompt">
+        <button class="prompt-close" onclick="document.getElementById('wisdom-prompt').classList.remove('visible')">×</button>
+        <div class="prompt-title">Maybe This Will Help...</div>
+        <div class="prompt-message" id="wisdom-text"></div>
+        <div class="prompt-buttons">
+            <button class="prompt-btn" onclick="document.getElementById('wisdom-prompt').classList.remove('visible')">Close</button>
+        </div>
+    </div>
+
+    <!-- Theme Selector Modal -->
+    <div class="prompt-modal" id="theme-prompt">
+        <button class="prompt-close" onclick="document.getElementById('theme-prompt').classList.remove('visible')">×</button>
+        <div class="prompt-title">Select Theme</div>
+        <div class="theme-grid" id="theme-grid"></div>
+    </div>
+
+    <!-- Left Hand Menu -->
+    <div class="hand-menu" id="left-hand">
+        <div class="hand-circle">LH</div>
+        <div class="radial-menu" id="lh-radial"></div>
+    </div>
+
+    <!-- Right Hand Menu -->
+    <div class="hand-menu" id="right-hand">
+        <div class="hand-circle">RH</div>
+        <div class="radial-menu" id="rh-radial"></div>
+    </div>
+
+    <!-- Conscious Hand Menu -->
+    <div class="hand-menu" id="conscious-hand">
+        <div class="hand-circle">CH</div>
+        <div class="radial-menu" id="ch-radial"></div>
+    </div>
+
+    <!-- Pause Overlay -->
+    <div class="pause-overlay" id="pause-overlay">
+        <div class="pause-menu">
+            <div class="pause-title">PAUSED</div>
+            <button class="pause-btn" id="resume-btn">Resume</button>
+        </div>
+    </div>
+
+    <!-- Pocket Panel -->
+    <div class="pocket-panel" id="pocket-panel">
+        <div class="pocket-header">USER POCKET</div>
+        <div class="pocket-grid" id="pocket-grid"></div>
+        <div class="pocket-pagination" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; padding: 10px;">
+            <button id="pocket-prev-page" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px;">◀ PREV</button>
+            <span id="pocket-page-info" style="font-size: 12px; color: #fff; min-width: 80px; text-align: center;">Page 1 / 10</span>
+            <button id="pocket-next-page" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px;">NEXT ▶</button>
+        </div>
+    </div>
+
+    <!-- Particle Behavior Panel -->
+    <div id="particle-behavior-panel" class="side-menu" style="display: none; right: 120px; top: 80px; width: 350px; max-height: 600px; overflow-y: auto;">
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span class="panel-title" style="font-size: 18px; font-weight: 700;">PARTICLE BEHAVIOR</span>
+            <button class="panel-btn close-btn" id="particle-behavior-close" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">×</button>
+        </div>
+        
+        <div class="behavior-section" style="margin-bottom: 25px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Behavior Mode</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px;">
+                <button class="behavior-mode-btn active" data-mode="calm" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">CALM</button>
+                <button class="behavior-mode-btn" data-mode="forward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">FORWARD</button>
+                <button class="behavior-mode-btn" data-mode="backward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">BACKWARD</button>
+                <button class="behavior-mode-btn" data-mode="connected" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">CONNECTED</button>
+                <button class="behavior-mode-btn" data-mode="glitch" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">GLITCH</button>
+                <button class="behavior-mode-btn" data-mode="constellation" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">CONSTELLATION</button>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="forward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Forward Flow Speed</div>
+            <input type="range" id="forward-speed-slider" min="1" max="100" value="50" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="forward-speed-value">50</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="backward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Backward Flow Speed</div>
+            <input type="range" id="backward-speed-slider" min="1" max="100" value="50" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="backward-speed-value">50</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="connected-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Connection Frequency</div>
+            <input type="range" id="connected-frequency-slider" min="1" max="100" value="50" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Sparse</span>
+                <span id="connected-frequency-value">50</span>
+                <span>Dense</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="glitch-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Glitch Intensity</div>
+            <input type="range" id="glitch-intensity-slider" min="1" max="100" value="50" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Subtle</span>
+                <span id="glitch-intensity-value">50</span>
+                <span>Extreme</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="constellation-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Connection Distance</div>
+            <input type="range" id="constellation-distance-slider" min="1" max="100" value="30" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Close</span>
+                <span id="constellation-distance-value">30</span>
+                <span>Far</span>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 25px 0;"></div>
+        
+        <!-- Particle Count -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Particle Count</div>
+            <input type="range" id="particle-count-slider" min="3000" max="6000" value="3000" step="100" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>3,000</span>
+                <span id="particle-count-value">3,000</span>
+                <span>6,000</span>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 25px 0;"></div>
+        
+        <!-- Particle System Rotation -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 15px; font-size: 14px;">Particle System Rotation</div>
+            
+            <!-- X Rotation -->
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">X-Axis</span>
+                    <span id="particle-rot-x-value" style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">0°</span>
+                </div>
+                <input type="range" id="particle-rot-x-slider" min="0" max="360" value="0" style="width: 100%; cursor: pointer;">
+            </div>
+            
+            <!-- Y Rotation -->
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">Y-Axis</span>
+                    <span id="particle-rot-y-value" style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">0°</span>
+                </div>
+                <input type="range" id="particle-rot-y-slider" min="0" max="360" value="0" style="width: 100%; cursor: pointer;">
+            </div>
+            
+            <!-- Z Rotation -->
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">Z-Axis</span>
+                    <span id="particle-rot-z-value" style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">71°</span>
+                </div>
+                <input type="range" id="particle-rot-z-slider" min="0" max="360" value="71" style="width: 100%; cursor: pointer;">
+            </div>
+            
+            <button id="particle-rot-reset" style="width: 100%; padding: 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600;">
+                RESET ROTATION
+            </button>
+        </div>
+    </div>
+
+    <!-- FAQ Panel -->
+    <div id="faq-panel">
+        <div class="panel-header">
+            <span class="panel-title">CONTROLS & FAQ</span>
+            <button class="panel-btn close-btn" id="faq-close">×</button>
+        </div>
+        <div class="faq-content">
+            <div class="faq-item">
+                <div class="faq-question">⌨️ Keyboard Controls</div>
+                <div class="faq-answer" style="line-height: 2;">
+                    <strong>W</strong> - Move forward<br>
+                    <strong>A</strong> - Move left<br>
+                    <strong>S</strong> - Move backward<br>
+                    <strong>D</strong> - Move right<br>
+                    <strong>R</strong> - Move up<br>
+                    <strong>F</strong> - Move down<br>
+                    <strong>C</strong> - Hold to enable mouse look (FPS mode)<br>
+                    <strong>O</strong> - Reset camera to origin (0, 0, 10)<br>
+                    <strong>0</strong> - Toggle MySpace (collapse/expand grid)<br>
+                    <strong>9</strong> - Toggle User Pocket<br>
+                    <strong>Q</strong> - Toggle Controls & FAQ panel<br>
+                    <strong>X</strong> - Toggle Inspector panel<br>
+                    <strong>Z</strong> - Toggle docks visibility<br>
+                    <strong>Left Shift</strong> - Toggle Left Hand menu<br>
+                    <strong>Right Shift</strong> - Toggle Right Hand menu<br>
+                    <strong>Enter</strong> - Toggle Conscious Hand menu
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">🖱️ Mouse Controls</div>
+                <div class="faq-answer">
+                    <strong>Hold C + Move mouse</strong> - Look around (FPS style)<br>
+                    <strong>Click objects</strong> - Select journal pages or grid panels<br>
+                    <strong>Click + Drag</strong> - Orbit camera around scene
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">📱 Mobile Controls</div>
+                <div class="faq-answer">
+                    <strong>Joystick (bottom left)</strong> - Move camera position<br>
+                    <strong>Single finger touch on screen</strong> - Look around (FPS camera rotation)<br>
+                    <strong>POS/ROT/SCL buttons</strong> - Adjust position, rotation, scale<br>
+                    <strong>Action buttons (A1-A30)</strong> - Custom quick actions
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">🔍 UI Panels</div>
+                <div class="faq-answer">
+                    <strong>Top Left</strong> - Session info (space title, username, timer)<br>
+                    <strong>Top Right</strong> - Search panel (click icon to expand)<br>
+                    <strong>Inspector (X key)</strong> - Object properties and transparency<br>
+                    <strong>Side Menus</strong> - Click hamburger icons for navigation
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">✋ Hand Menus</div>
+                <div class="faq-answer">
+                    <strong>Left Hand (LH)</strong> - Left Shift key or LH button - Radial menu with 10 options<br>
+                    <strong>Right Hand (RH)</strong> - Right Shift key or RH button - Radial menu with 10 options<br>
+                    <strong>Conscious Hand (CH)</strong> - Enter key or CH button - Main menu controls including Pause Menu<br>
+                    Click on radial menu items to select options. Only one hand menu visible at a time.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">🌐 MySpace (Grid Sphere)</div>
+                <div class="faq-answer">
+                    The spherical grid is your personal space. Press <strong>0 key</strong> or the <strong>MS button</strong> to collapse/expand it. When collapsed, panels animate one-by-one into a smaller sphere. Access also via Conscious Hand menu → MySpace option.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">📦 User Pocket</div>
+                <div class="faq-answer">
+                    Your pocket stores up to <strong>20 items</strong>. Press <strong>9 key</strong> or select from Conscious Hand menu. The pocket panel slides in from the right with a 4x5 grid.<br><br>
+                    <strong>Cell States:</strong><br>
+                    • Empty slots: Dashed border, ready for items<br>
+                    • Items in pocket: 35% opacity (stored)<br>
+                    • Items deployed in scene: 20% opacity (active)<br><br>
+                    Click slots to deploy/recall items. Items can have password protection for security.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">How do I navigate the site?</div>
+                <div class="faq-answer">Click the hamburger menus (☰) at the top left (Admin/System) and top right (Site Pages) to access different sections. Click outside the menu to close it.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What are the docks?</div>
+                <div class="faq-answer">Docks are located on all four edges (top, bottom, left, right). They contain draggable items (D1-D14) you can move between docks by clicking and dragging. Press <strong>Z</strong> to show/hide all docks.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">How do I select and manipulate objects?</div>
+                <div class="faq-answer">Click on any journal page or grid panel to select it. Selected objects turn blue and the camera animates to focus on them. Press <strong>X</strong> to open the Inspector panel where you can adjust transparency (10-100%) and view object details.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What do the transform buttons do?</div>
+                <div class="faq-answer">The <strong>POS</strong>, <strong>ROT</strong>, and <strong>SCL</strong> buttons open transform panels to adjust position, rotation, and scale of selected objects with precise control. Use the step size control to determine how much each adjustment changes the values (range: -1000 to 1000).</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspector Panel -->
+    <div id="inspector-panel">
+        <div class="panel-header" id="panel-header">
+            <span class="panel-title">INSPECTOR</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content" id="panel-content" style="padding: 16px;">
+            <!-- Selected Object Name -->
+            <div style="margin-bottom: 20px;">
+                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;">SELECTED OBJECT</div>
+                <div class="info-value" id="selected-name" style="font-size: 14px; font-weight: 700; color: #808080;">None</div>
+            </div>
+            
+            <!-- Object Transform Properties -->
+            <div id="object-details" style="display: none;">
+                <!-- Position -->
+                <div style="margin-bottom: 15px;">
+                    <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;">POSITION</div>
+                    <div id="object-position" style="font-family: 'Courier New', monospace; font-size: 12px; color: #fff; background: rgba(0, 0, 0, 0.3); padding: 8px; border-radius: 6px; border: 1px solid rgba(128, 128, 128, 0.3);">
+                        X: 0.00 | Y: 0.00 | Z: 0.00
+                    </div>
+                </div>
+                
+                <!-- Rotation -->
+                <div style="margin-bottom: 15px;">
+                    <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;">ROTATION</div>
+                    <div id="object-rotation" style="font-family: 'Courier New', monospace; font-size: 12px; color: #fff; background: rgba(0, 0, 0, 0.3); padding: 8px; border-radius: 6px; border: 1px solid rgba(128, 128, 128, 0.3);">
+                        X: 0.00 | Y: 0.00 | Z: 0.00
+                    </div>
+                </div>
+                
+                <!-- Scale -->
+                <div style="margin-bottom: 20px;">
+                    <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;">SCALE</div>
+                    <div id="object-scale" style="font-family: 'Courier New', monospace; font-size: 12px; color: #fff; background: rgba(0, 0, 0, 0.3); padding: 8px; border-radius: 6px; border: 1px solid rgba(128, 128, 128, 0.3);">
+                        X: 1.00 | Y: 1.00 | Z: 1.00
+                    </div>
+                </div>
+                
+                <!-- Divider -->
+                <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
+                
+                <!-- Object Data Section -->
+                <div style="margin-bottom: 20px;">
+                    <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">OBJECT DATA</div>
+                    
+                    <!-- Header Field -->
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Header</label>
+                        <input type="text" id="object-data-header" placeholder="Enter header..." style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 12px; outline: none;">
+                    </div>
+                    
+                    <!-- Body Field -->
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Body</label>
+                        <textarea id="object-data-body" placeholder="Enter body content..." style="width: 100%; min-height: 120px; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; outline: none; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <!-- Footer Field -->
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Footer</label>
+                        <input type="text" id="object-data-footer" placeholder="Enter footer..." style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 12px; outline: none;">
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button id="object-data-submit" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s; margin-bottom: 10px;">
+                        SAVE DATA
+                    </button>
+                    
+                    <!-- View Panel Button -->
+                    <button id="open-view-panel-btn" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                        📄 VIEW PANEL
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Resize Handle -->
+        <div id="inspector-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
+    </div>
+
+    <!-- Object Data View Panel -->
+    <div id="view-panel" style="display: none; position: fixed; left: 360px; top: 135px; width: 400px; max-height: calc(100vh - 400px); overflow-y: auto; background: rgba(25, 25, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); color: #fff; z-index: 1000;">
+        <div id="view-panel-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(128, 128, 128, 0.15); border-bottom: 1px solid rgba(128, 128, 128, 0.3); cursor: move; user-select: none; border-top-left-radius: 16px; border-top-right-radius: 16px;">
+            <span style="font-size: 14px; font-weight: 600; letter-spacing: 0.5px;">OBJECT DATA VIEW</span>
+            <button id="view-panel-close" style="width: 24px; height: 24px; border-radius: 50%; background: rgba(255, 0, 0, 0.2); border: 1px solid rgba(255, 0, 0, 0.5); color: #fff; cursor: pointer; font-size: 18px; line-height: 1;">×</button>
+        </div>
+        
+        <div style="padding: 16px;">
+        <!-- Header -->
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">HEADER</div>
+                <button class="copy-btn" data-copy="header" style="padding: 4px 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">📋 COPY</button>
+            </div>
+            <div id="view-header" style="padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 8px; font-family: 'Orbitron', sans-serif; font-size: 13px; word-wrap: break-word; min-height: 40px;">
+                —
+            </div>
+        </div>
+        
+        <!-- Body -->
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">BODY</div>
+                <button class="copy-btn" data-copy="body" style="padding: 4px 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">📋 COPY</button>
+            </div>
+            <div id="view-body" style="padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 8px; font-family: 'Orbitron', sans-serif; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; min-height: 120px; max-height: 300px; overflow-y: auto;">
+                —
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">FOOTER</div>
+                <button class="copy-btn" data-copy="footer" style="padding: 4px 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">📋 COPY</button>
+            </div>
+            <div id="view-footer" style="padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 8px; font-family: 'Orbitron', sans-serif; font-size: 13px; word-wrap: break-word; min-height: 40px;">
+                —
+            </div>
+        </div>
+        </div>
+        
+        <!-- Resize Handle -->
+        <div id="view-panel-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
+    </div>
+
+    <!-- MySpace Grid Panel -->
+    <div id="myspace-grid-panel" class="side-menu" style="display: none; right: 120px; top: 80px; width: 350px; max-height: 600px; overflow-y: auto;">
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span class="panel-title" style="font-size: 18px; font-weight: 700;">MYSPACE GRID</span>
+            <button class="panel-btn close-btn" id="myspace-grid-close" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">×</button>
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+            <div style="font-weight: 600; margin-bottom: 15px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Type</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <button class="myspace-grid-btn active" data-grid-type="spherical" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    🌐 SPHERICAL
+                </button>
+                <button class="myspace-grid-btn" data-grid-type="planar" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    📐 PLANAR WALLS
+                </button>
+                <button class="myspace-grid-btn" data-grid-type="helix" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    🌀 HELIX
+                </button>
+                <button class="myspace-grid-btn" data-grid-type="cube" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    ⬛ CUBE
+                </button>
+            </div>
+        </div>
+        
+        <!-- Grid Settings -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Size</div>
+            <input type="range" id="grid-size-slider" min="5" max="25" value="15" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.7);">
+                <span>Small (5)</span>
+                <span id="grid-size-value">15</span>
+                <span>Large (25)</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Spacing</div>
+            <input type="range" id="grid-spacing-slider" min="1" max="5" value="2" step="0.5" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.7);">
+                <span>Tight (1)</span>
+                <span id="grid-spacing-value">2</span>
+                <span>Wide (5)</span>
+            </div>
+        </div>
+        
+        <button id="apply-grid-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.4); border: 1px solid rgba(128, 128, 128, 0.6); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+            ✓ APPLY CHANGES
+        </button>
+    </div>
+
+    <!-- Mobile Movement Control -->
+    <div id="movement-control">
+        <div class="joystick-base">
+            <div class="joystick-stick" id="joystick-stick"></div>
+        </div>
+        <div class="control-buttons">
+            <!-- Column 1: Vertical Movement -->
+            <button class="control-btn vertical-btn" id="btn-up" title="Move Up (R)">↑</button>
+            <button class="control-btn vertical-btn" id="btn-down" title="Move Down (F)">↓</button>
+            <button class="control-btn vertical-btn" id="btn-center" title="Reset Camera (O)">⦿</button>
+            
+            <!-- Column 2: Transform Controls -->
+            <button class="control-btn" id="btn-pos" title="Position">POS</button>
+            <button class="control-btn" id="btn-rot" title="Rotation">ROT</button>
+            <button class="control-btn" id="btn-scale" title="Scale">SCL</button>
+            
+            <!-- Column 3: Hand Menus -->
+            <button class="control-btn" id="btn-lh" title="Left Hand">LH</button>
+            <button class="control-btn" id="btn-rh" title="Right Hand">RH</button>
+            <button class="control-btn" id="btn-ch" title="Conscious Hand">CH</button>
+            
+            <!-- Column 4: UI Toggles -->
+            <button class="control-btn" id="btn-docks" title="Docks">DO</button>
+            <button class="control-btn" id="btn-keyboard" title="Keyboard">KB</button>
+            <button class="control-btn" id="btn-action-grid" title="Action Grid">GKB</button>
+            
+            <!-- Column 5: Future Buttons -->
+            <button class="control-btn" id="btn-nav" title="Toggle Navigation Bar">NAV</button>
+            <button class="control-btn" id="btn-rulers" title="Toggle Rulers">RUL</button>
+            <button class="control-btn" id="btn-13">B13</button>
+        </div>
+    </div>
+
+    <!-- Position Rulers -->
+    <div id="x-axis-ruler" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 300px; height: 30px; background: rgba(25, 25, 30, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; align-items: center; justify-content: space-between; padding: 0 10px; font-family: 'Courier New', monospace; font-size: 10px; color: #fff; z-index: 900;">
+        <span style="color: rgba(255, 255, 255, 0.6);">-50</span>
+        <div style="flex: 1; height: 2px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2)); margin: 0 10px; position: relative; box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);">
+            <div id="x-marker" style="position: absolute; width: 4px; height: 16px; background: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.5); left: 50%; transform: translateX(-50%); top: -7px; border-radius: 2px;"></div>
+        </div>
+        <span style="color: rgba(255, 255, 255, 0.6);">+50</span>
+        <span style="margin-left: 10px; color: #fff; font-weight: 700; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">X</span>
+    </div>
+    
+    <div id="y-axis-ruler" style="display: none; position: fixed; right: 20px; top: 80px; width: 30px; height: 300px; background: rgba(25, 25, 30, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 0; font-family: 'Courier New', monospace; font-size: 10px; color: #fff; z-index: 900;">
+        <span style="color: rgba(255, 255, 255, 0.6);">+50</span>
+        <div style="flex: 1; width: 2px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2)); margin: 10px 0; position: relative; box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);">
+            <div id="y-marker" style="position: absolute; height: 4px; width: 16px; background: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.5); top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 2px;"></div>
+        </div>
+        <span style="color: rgba(255, 255, 255, 0.6);">-50</span>
+        <div style="margin-top: 10px; color: #fff; font-weight: 700; writing-mode: vertical-rl; transform: rotate(180deg); text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">Y</div>
+    </div>
+    
+    <div id="z-axis-ruler" style="display: none; position: fixed; left: 20px; top: 80px; width: 30px; height: 300px; background: rgba(25, 25, 30, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 0; font-family: 'Courier New', monospace; font-size: 10px; color: #fff; z-index: 900;">
+        <span style="color: rgba(255, 255, 255, 0.6);">+50</span>
+        <div style="flex: 1; width: 2px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2)); margin: 10px 0; position: relative; box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);">
+            <div id="z-marker" style="position: absolute; height: 4px; width: 16px; background: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.5); top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 2px;"></div>
+        </div>
+        <span style="color: rgba(255, 255, 255, 0.6);">-50</span>
+        <div style="margin-top: 10px; color: #fff; font-weight: 700; writing-mode: vertical-rl; transform: rotate(180deg); text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">Z</div>
+    </div>
+
+    <!-- Virtual Keyboard -->
+    <div id="virtual-keyboard"></div>
+
+    <!-- Transform Panel -->
+    <div id="transform-panel">
+        <div class="transform-header">
+            <span class="panel-title" id="transform-title">POSITION</span>
+            <button class="panel-btn close-btn" id="transform-close">×</button>
+        </div>
+        <div class="transform-content">
+            <div class="transform-row">
+                <div class="transform-label">X</div>
+                <div class="transform-inputs">
+                    <input type="number" class="transform-input" id="transform-x" value="0" step="0.1">
+                </div>
+            </div>
+            <div class="transform-row">
+                <div class="transform-label">Y</div>
+                <div class="transform-inputs">
+                    <input type="number" class="transform-input" id="transform-y" value="0" step="0.1">
+                </div>
+            </div>
+            <div class="transform-row">
+                <div class="transform-label">Z</div>
+                <div class="transform-inputs">
+                    <input type="number" class="transform-input" id="transform-z" value="0" step="0.1">
+                </div>
+            </div>
+            <div class="transform-row">
+                <div class="transform-label">Step Size</div>
+                <div class="step-control">
+                    <span class="step-label">Range:</span>
+                    <input type="number" class="step-input" id="step-size" value="1" min="-1000" max="1000">
+                </div>
+            </div>
+            <div class="transform-submit-container">
+                <button class="transform-submit-btn" id="transform-submit">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Button Grid (30 buttons) -->
+    <div id="action-grid" class="hidden">
+        <button class="action-btn" data-action="1">A1</button>
+        <button class="action-btn" data-action="2">A2</button>
+        <button class="action-btn" data-action="3">A3</button>
+        <button class="action-btn" data-action="4">A4</button>
+        <button class="action-btn" data-action="5">A5</button>
+        <button class="action-btn" data-action="6">A6</button>
+        <button class="action-btn" data-action="7">A7</button>
+        <button class="action-btn" data-action="8">A8</button>
+        <button class="action-btn" data-action="9">A9</button>
+        <button class="action-btn" data-action="10">A10</button>
+        <button class="action-btn" data-action="11">A11</button>
+        <button class="action-btn" data-action="12">A12</button>
+        <button class="action-btn" data-action="13">A13</button>
+        <button class="action-btn" data-action="14">A14</button>
+        <button class="action-btn" data-action="15">A15</button>
+        <button class="action-btn" data-action="16">A16</button>
+        <button class="action-btn" data-action="17">A17</button>
+        <button class="action-btn" data-action="18">A18</button>
+        <button class="action-btn" data-action="19">A19</button>
+        <button class="action-btn" data-action="20">A20</button>
+        <button class="action-btn" data-action="21">A21</button>
+        <button class="action-btn" data-action="22">A22</button>
+        <button class="action-btn" data-action="23">A23</button>
+        <button class="action-btn" data-action="24">A24</button>
+        <button class="action-btn" data-action="25">A25</button>
+        <button class="action-btn" data-action="26">A26</button>
+        <button class="action-btn" data-action="27">A27</button>
+        <button class="action-btn" data-action="28">A28</button>
+        <button class="action-btn" data-action="29">A29</button>
+        <button class="action-btn" data-action="30">A30</button>
+    </div>
+
+    <!-- THREE.js and GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
