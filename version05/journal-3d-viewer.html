@@ -2579,7 +2579,7 @@
             <!-- Column 5: Future Buttons -->
             <button class="control-btn" id="btn-nav" title="Toggle Navigation Bar">NAV</button>
             <button class="control-btn" id="btn-rulers" title="Toggle Rulers">RUL</button>
-            <button class="control-btn" id="btn-13">MAX</button>
+            <button class="control-btn" id="btn-13">B13</button>
         </div>
     </div>
 
@@ -4618,14 +4618,6 @@
         }
 
         // Initialize scene
-        // Entrance sequence variables
-        let entranceTunnel = null;
-        let entranceWireframe = null;
-        let entranceRings = [];
-        let isEntranceActive = false;
-        let entranceProgress = 0;
-        let landingCylinder = null;
-
         function init() {
             // Scene
             scene = new THREE.Scene();
@@ -5103,272 +5095,6 @@
 
             // Start animation
             animate();
-            
-            // Show welcome screen
-            showWelcomeScreen();
-            
-            // Setup MAX button for fullscreen
-            setupMaxButton();
-        }
-        
-        function setupMaxButton() {
-            const maxBtn = document.getElementById('btn-13');
-            if (maxBtn) {
-                maxBtn.addEventListener('click', () => {
-                    if (!document.fullscreenElement) {
-                        // Enter fullscreen
-                        document.documentElement.requestFullscreen().catch(err => {
-                            console.log('Fullscreen error:', err);
-                        });
-                        maxBtn.textContent = 'EXIT';
-                        playSound('active');
-                    } else {
-                        // Exit fullscreen
-                        document.exitFullscreen();
-                        maxBtn.textContent = 'MAX';
-                        playSound('active');
-                    }
-                });
-                
-                // Listen for fullscreen changes
-                document.addEventListener('fullscreenchange', () => {
-                    if (!document.fullscreenElement) {
-                        maxBtn.textContent = 'MAX';
-                    } else {
-                        maxBtn.textContent = 'EXIT';
-                    }
-                });
-            }
-        }
-        
-        function showWelcomeScreen() {
-            // Create welcome panel overlay
-            const welcomePanel = document.createElement('div');
-            welcomePanel.id = 'welcome-panel';
-            welcomePanel.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: linear-gradient(135deg, 
-                    rgba(200, 200, 210, 0.95), 
-                    rgba(240, 240, 245, 0.95), 
-                    rgba(220, 220, 230, 0.95),
-                    rgba(250, 250, 255, 0.95));
-                background-size: 400% 400%;
-                animation: cloudFlow 15s ease infinite;
-                z-index: 10000;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                backdrop-filter: blur(20px);
-            `;
-            
-            welcomePanel.innerHTML = `
-                <div style="text-align: center; max-width: 600px; padding: 40px;">
-                    <div style="font-family: 'Orbitron', sans-serif; font-size: 48px; font-weight: 900; color: rgba(80, 80, 90, 1); text-shadow: 0 0 30px rgba(255, 255, 255, 0.9), 0 0 60px rgba(200, 200, 210, 0.6); margin-bottom: 30px; animation: pulse 2s infinite;">
-                        Welcome to ⟐mniExp
-                    </div>
-                    <div style="font-family: 'Orbitron', sans-serif; font-size: 18px; color: rgba(100, 100, 110, 0.9); margin-bottom: 40px; line-height: 1.6;">
-                        Prepare for the transferring of your consciousness.
-                    </div>
-                    <button id="start-entrance" style="
-                        padding: 20px 60px;
-                        background: linear-gradient(135deg, rgba(180, 180, 190, 0.4), rgba(220, 220, 230, 0.4));
-                        border: 2px solid rgba(100, 100, 110, 0.6);
-                        border-radius: 50px;
-                        color: rgba(80, 80, 90, 1);
-                        font-family: 'Orbitron', sans-serif;
-                        font-size: 24px;
-                        font-weight: 700;
-                        cursor: pointer;
-                        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-                        box-shadow: 0 0 30px rgba(200, 200, 210, 0.5), 0 0 60px rgba(220, 220, 230, 0.4);
-                        transition: all 0.3s;
-                    ">
-                        ⟐mniSynx
-                    </button>
-                </div>
-                <style>
-                    @keyframes cloudFlow {
-                        0% { background-position: 0% 50%; }
-                        25% { background-position: 50% 60%; }
-                        50% { background-position: 100% 50%; }
-                        75% { background-position: 50% 40%; }
-                        100% { background-position: 0% 50%; }
-                    }
-                    @keyframes pulse {
-                        0%, 100% { opacity: 1; transform: scale(1); }
-                        50% { opacity: 0.85; transform: scale(1.03); }
-                    }
-                    #start-entrance:hover {
-                        background: linear-gradient(135deg, rgba(200, 200, 210, 0.6), rgba(240, 240, 245, 0.6));
-                        box-shadow: 0 0 50px rgba(200, 200, 210, 0.7), 0 0 80px rgba(220, 220, 230, 0.6);
-                        transform: scale(1.1);
-                        color: rgba(60, 60, 70, 1);
-                    }
-                </style>
-            `;
-            
-            document.body.appendChild(welcomePanel);
-            
-            // Button click starts entrance
-            document.getElementById('start-entrance').addEventListener('click', () => {
-                playSound('active');
-                welcomePanel.style.transition = 'opacity 0.5s';
-                welcomePanel.style.opacity = '0';
-                setTimeout(() => {
-                    welcomePanel.remove();
-                    startEntranceSequence();
-                }, 500);
-            });
-        }
-        
-        function startEntranceSequence() {
-            isEntranceActive = true;
-            entranceProgress = 0;
-            
-            // Move camera way above
-            camera.position.set(0, 100000, 0);
-            camera.lookAt(0, 0, 0);
-            
-            // Create primary tunnel cylinder (50% transparent white)
-            const tunnelGeometry = new THREE.CylinderGeometry(15, 15, 200000, 32, 1, true);
-            const tunnelMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.5,
-                side: THREE.DoubleSide
-            });
-            entranceTunnel = new THREE.Mesh(tunnelGeometry, tunnelMaterial);
-            entranceTunnel.position.y = 50000;
-            scene.add(entranceTunnel);
-            
-            // Create wireframe cylinder inside
-            const wireframeGeometry = new THREE.CylinderGeometry(14, 14, 200000, 16, 1, true);
-            const wireframeMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.8
-            });
-            entranceWireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
-            entranceWireframe.position.y = 50000;
-            scene.add(entranceWireframe);
-            
-            // Create ring geometries that come towards user
-            for (let i = 0; i < 20; i++) {
-                const ringGeometry = new THREE.TorusGeometry(12, 0.5, 16, 32);
-                const ringMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xffffff,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-                ring.rotation.x = Math.PI / 2;
-                ring.position.y = i * 10000;
-                ring.userData.initialY = ring.position.y;
-                entranceRings.push(ring);
-                scene.add(ring);
-            }
-            
-            // Disable controls during entrance
-            controlsEnabled = false;
-        }
-        
-        function updateEntranceSequence(delta) {
-            if (!isEntranceActive) return;
-            
-            // 5 second descent
-            entranceProgress += delta / 5;
-            
-            if (entranceProgress < 1) {
-                // Descend
-                const startY = 100000;
-                const endY = 15;
-                camera.position.y = startY - (startY - endY) * entranceProgress;
-                
-                // Rotate tunnel
-                if (entranceTunnel) entranceTunnel.rotation.y += delta * 2;
-                if (entranceWireframe) entranceWireframe.rotation.y -= delta * 3;
-                
-                // Move rings towards user
-                entranceRings.forEach((ring, i) => {
-                    ring.position.y -= delta * 20000;
-                    if (ring.position.y < camera.position.y - 1000) {
-                        ring.position.y = camera.position.y + 20000;
-                    }
-                    ring.rotation.z += delta * 2;
-                });
-            } else {
-                // Landing sequence
-                endEntranceSequence();
-            }
-        }
-        
-        function endEntranceSequence() {
-            isEntranceActive = false;
-            
-            // Remove tunnel and rings
-            if (entranceTunnel) {
-                scene.remove(entranceTunnel);
-                entranceTunnel = null;
-            }
-            if (entranceWireframe) {
-                scene.remove(entranceWireframe);
-                entranceWireframe = null;
-            }
-            entranceRings.forEach(ring => scene.remove(ring));
-            entranceRings = [];
-            
-            // Create landing cylinder effect
-            const landingGeometry = new THREE.CylinderGeometry(8, 8, 30, 32, 1, true);
-            const landingMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.9,
-                side: THREE.DoubleSide
-            });
-            landingCylinder = new THREE.Mesh(landingGeometry, landingMaterial);
-            landingCylinder.position.copy(camera.position);
-            scene.add(landingCylinder);
-            
-            // Animate cylinder rising and fading
-            let landingProgress = 0;
-            const landingAnimation = setInterval(() => {
-                landingProgress += 0.02;
-                if (landingProgress >= 1) {
-                    scene.remove(landingCylinder);
-                    landingCylinder = null;
-                    clearInterval(landingAnimation);
-                    controlsEnabled = true;
-                } else {
-                    landingCylinder.position.y += 2;
-                    landingCylinder.material.opacity = 0.9 * (1 - landingProgress);
-                    landingCylinder.scale.set(1 + landingProgress * 2, 1, 1 + landingProgress * 2);
-                }
-            }, 16);
-            
-            // Smooth camera transition to final position
-            gsap.to(camera.position, {
-                duration: 1,
-                x: 0,
-                y: 0,
-                z: 15,
-                ease: 'power2.out',
-                onUpdate: () => {
-                    // During transition, gradually face forward
-                    camera.lookAt(0, 0, 0);
-                },
-                onComplete: () => {
-                    // Once at final position, face forward towards horizon
-                    camera.lookAt(0, 0, -100);
-                }
-            });
-            
-            playSound('active');
         }
 
         function onMouseMove(event) {
@@ -6800,14 +6526,10 @@
         function setupMobileControls() {
             const joystickStick = document.getElementById('joystick-stick');
             const joystickBase = joystickStick.parentElement;
-            
-            // Performance optimization for mobile
-            let lastJoystickUpdate = 0;
-            const joystickThrottle = 16; // ~60fps max
 
             // Joystick touch/mouse controls
             joystickStick.addEventListener('mousedown', startJoystick);
-            joystickStick.addEventListener('touchstart', startJoystick, { passive: false });
+            joystickStick.addEventListener('touchstart', startJoystick);
 
             function startJoystick(e) {
                 e.preventDefault();
@@ -6819,20 +6541,13 @@
                 };
 
                 document.addEventListener('mousemove', moveJoystick);
-                document.addEventListener('touchmove', moveJoystick, { passive: false });
+                document.addEventListener('touchmove', moveJoystick);
                 document.addEventListener('mouseup', stopJoystick);
                 document.addEventListener('touchend', stopJoystick);
             }
 
             function moveJoystick(e) {
                 if (!joystickActive) return;
-                
-                // Throttle updates for performance on mobile
-                const now = performance.now();
-                if (now - lastJoystickUpdate < joystickThrottle) {
-                    return;
-                }
-                lastJoystickUpdate = now;
                 
                 e.preventDefault(); // Prevent scrolling on mobile
                 
@@ -6875,8 +6590,6 @@
             let touchStartX = 0;
             let touchStartY = 0;
             let isTouchLooking = false;
-            let lastTouchUpdate = 0;
-            const touchThrottle = 16; // ~60fps max
 
             canvas.addEventListener('touchstart', (e) => {
                 // Only handle single finger touch for camera look
@@ -6886,17 +6599,10 @@
                     touchStartY = touch.clientY;
                     isTouchLooking = true;
                 }
-            }, { passive: true });
+            });
 
             canvas.addEventListener('touchmove', (e) => {
                 if (isTouchLooking && e.touches.length === 1) {
-                    // Throttle for performance
-                    const now = performance.now();
-                    if (now - lastTouchUpdate < touchThrottle) {
-                        return;
-                    }
-                    lastTouchUpdate = now;
-                    
                     e.preventDefault();
                     const touch = e.touches[0];
                     
@@ -7448,24 +7154,6 @@
                 document.getElementById('fps-counter').textContent = `${fps}`;
                 fpsFrames = 0;
                 fpsTime = 0;
-            }
-            
-            // Update entrance sequence
-            if (isEntranceActive) {
-                updateEntranceSequence(delta / 1000);
-                renderer.render(scene, camera);
-                return; // Skip other updates during entrance
-            }
-            
-            // Performance optimization for mobile/iPad
-            const isMobile = window.innerWidth < 1024;
-            if (isMobile) {
-                // Reduce particle system updates on mobile
-                if (Math.random() > 0.5) {
-                    // Skip half the particle updates for better performance
-                    renderer.render(scene, camera);
-                    return;
-                }
             }
             
             // Animate particle energy state

@@ -1503,22 +1503,3 @@ body {
         padding: 16px;
     }
 }
-    </style>
-        <style>
-            @keyframes cloudFlow {
-                0% { background-position: 0% 50%; }
-                25% { background-position: 50% 60%; }
-                50% { background-position: 100% 50%; }
-                75% { background-position: 50% 40%; }
-                100% { background-position: 0% 50%; }
-            }
-            @keyframes pulse {
-                0%, 100% { opacity: 1; transform: scale(1); }
-                50% { opacity: 0.85; transform: scale(1.03); }
-            }
-            #start-entrance:hover {
-                background: linear-gradient(135deg, rgba(200, 200, 210, 0.6), rgba(240, 240, 245, 0.6));
-                box-shadow: 0 0 50px rgba(200, 200, 210, 0.7), 0 0 80px rgba(220, 220, 230, 0.6);
-                transform: scale(1.1);
-                color: rgba(60, 60, 70, 1);
-            }
