@@ -1,0 +1,2315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Journal Viewer - OmniSense Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+            from { transform: translate(-50%, -50%) rotate(360deg); }
+            to { transform: translate(-50%, -50%) rotate(0deg); }
+        }
+
+        @keyframes rotateXAxis {
+            from { transform: translate(-50%, -50%) rotateX(0deg); }
+            to { transform: translate(-50%, -50%) rotateX(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <!-- Particles for Entrance -->
+    <div id="particles-js" style="position: fixed; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 1; opacity: 0.4; transition: opacity 1s; background: transparent;"></div>
+
+    <!-- Compact Header Bar -->
+    <div id="header-bar" style="position: fixed; top: 10px; left: 20px; right: 20px; height: 60px; background: rgba(25, 25, 30, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; padding: 8px 16px; z-index: 1000; display: flex; align-items: center; gap: 8px;">
+        
+        <!-- Profile Picture -->
+        <div id="profile-image-container" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(128, 128, 128, 0.5); overflow: hidden; cursor: pointer; background: rgba(128, 128, 128, 0.2); display: flex; align-items: center; justify-content: center; font-size: 24px; color: rgba(128, 128, 128, 0.8); flex-shrink: 0;">
+            👤
+        </div>
+        <input type="file" id="profile-image-input" accept="image/*" style="display: none;">
+        
+        <!-- User Info Column -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 150px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">USER:</span>
+                <div id="header-username" contenteditable="true" style="font-size: 12px; font-weight: 700; color: #fff; border: 1px solid transparent; padding: 2px 4px; border-radius: 3px; outline: none; cursor: text;">undefined</div>
+            </div>
+            <div id="header-description" contenteditable="true" style="font-size: 10px; color: rgba(255, 255, 255, 0.5); border: 1px solid transparent; padding: 2px 4px; border-radius: 3px; outline: none; cursor: text; min-width: 100px;">Add description...</div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- Primary Space Info Column -->
+        <div style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+            <div style="font-size: 9px; font-weight: 700; color: #fff; letter-spacing: 0.5px; margin-bottom: 2px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">PRIMARY SPACE</div>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <div id="session-timer" style="font-size: 11px; font-weight: 700; color: #fff; font-family: 'Courier New', monospace;">00:00:00.000</div>
+                <div id="timezone-display" style="font-size: 10px; font-weight: 700; color: #fff; cursor: pointer; position: relative; font-family: 'Courier New', monospace; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">
+                    <span id="current-time">--:--:-- --</span>
+                    <span id="timezone-abbr" style="margin-left: 4px;">EST</span>
+                </div>
+                <!-- Timezone Selector Dropdown -->
+                <div id="timezone-selector" style="display: none; position: absolute; top: 100%; left: 0; background: rgba(25, 25, 30, 0.95); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 8px; padding: 8px; min-width: 200px; max-height: 300px; overflow-y: auto; z-index: 10000; backdrop-filter: blur(20px); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);">
+                    <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid rgba(128, 128, 128, 0.2);">SELECT TIMEZONE</div>
+                    <div class="timezone-option" data-tz="America/New_York" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(255, 255, 255, 0.8); border-radius: 4px;">EST - Eastern</div>
+                    <div class="timezone-option" data-tz="America/Chicago" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(255, 255, 255, 0.8); border-radius: 4px;">CST - Central</div>
+                    <div class="timezone-option" data-tz="America/Denver" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(255, 255, 255, 0.8); border-radius: 4px;">MST - Mountain</div>
+                    <div class="timezone-option" data-tz="America/Los_Angeles" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(255, 255, 255, 0.8); border-radius: 4px;">PST - Pacific</div>
+                    <div class="timezone-option" data-tz="Europe/London" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(255, 255, 255, 0.8); border-radius: 4px;">GMT - London</div>
+                    <div class="timezone-option" data-tz="Europe/Paris" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(255, 255, 255, 0.8); border-radius: 4px;">CET - Paris</div>
+                    <div class="timezone-option" data-tz="Asia/Tokyo" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(255, 255, 255, 0.8); border-radius: 4px;">JST - Tokyo</div>
+                    <div class="timezone-option" data-tz="Australia/Sydney" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(255, 255, 255, 0.8); border-radius: 4px;">AEDT - Sydney</div>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(128, 128, 128, 0.2);">
+                        <div id="auto-detect-tz" style="padding: 6px; cursor: pointer; font-size: 10px; color: rgba(74, 144, 226, 0.9); border-radius: 4px; text-align: center;">🌐 Auto-Detect Location</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- Coordinate Guide: Position -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 90px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">POS</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255, 255, 255, 0.8);">
+                <div id="coord-pos-x">X: 0.00</div>
+                <div id="coord-pos-y">Y: 0.00</div>
+                <div id="coord-pos-z">Z: 0.00</div>
+            </div>
+        </div>
+        
+        <!-- Coordinate Guide: Rotation -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 90px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">ROT</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255, 255, 255, 0.8);">
+                <div id="coord-rot-x">X: 0.00°</div>
+                <div id="coord-rot-y">Y: 0.00°</div>
+                <div id="coord-rot-z">Z: 0.00°</div>
+            </div>
+        </div>
+        
+        <!-- Coordinate Guide: Scale -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 90px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">SCA</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255, 255, 255, 0.8);">
+                <div id="coord-sca-x">X: 1.00</div>
+                <div id="coord-sca-y">Y: 1.00</div>
+                <div id="coord-sca-z">Z: 1.00</div>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- FPS Column -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 40px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">FPS</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 11px; color: rgba(255, 255, 255, 0.9);">
+                <div id="fps-counter">60</div>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- Performance Metrics Column -->
+        <div style="display: flex; flex-direction: column; gap: 1px; min-width: 50px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">PERF</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 7px; color: rgba(255, 255, 255, 0.7); line-height: 1.3;">
+                <div id="frame-time">16ms</div>
+                <div id="particle-count">0p</div>
+                <div id="cam-pos">0,0,0</div>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- System Column -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 100px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">SYSTEM</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255, 255, 255, 0.8);">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Root:</span>
+                    <span id="root-system" style="color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">default</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Parent:</span>
+                    <span id="parent-system" style="color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">default</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Child:</span>
+                    <span id="child-system" style="color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">default</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="width: 1px; height: 40px; background: rgba(128, 128, 128, 0.2); flex-shrink: 0;"></div>
+        
+        <!-- Dimensional Column -->
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 110px;">
+            <div style="font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">DIMENSIONAL</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 9px; color: rgba(255, 255, 255, 0.8);">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Exp:</span>
+                    <span id="dimensional-experience" style="color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">undefined</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Per:</span>
+                    <span id="dimensional-perspective" style="color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">undefined</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Time:</span>
+                    <span id="dimensional-time" style="color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">undefined</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Space:</span>
+                    <span id="dimensional-space" style="color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">undefined</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Right Search Panel -->
+    <div id="search-panel" class="collapsed">
+        <div class="search-icon">🔍</div>
+        <div class="search-content">
+            <input type="text" class="search-input" placeholder="Search..." id="search-input">
+        </div>
+    </div>
+
+    <!-- Camera Rotation Circle -->
+    <div id="camera-circle"></div>
+
+    <!-- Hamburger Menu Buttons -->
+    <div class="hamburger-btn" id="left-hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="hamburger-btn" id="right-hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Left Side Menu (Admin/System) -->
+    <div class="side-menu" id="left-menu">
+        <div class="menu-header">
+            <div class="menu-title">⟐-• ADMIN & SYSTEM</div>
+        </div>
+        <div class="breadcrumb" id="left-breadcrumb">
+            <span class="breadcrumb-item breadcrumb-current">Admin & System</span>
+        </div>
+        <div class="menu-items">
+            <!-- Governance Section -->
+            <div class="menu-item" data-page="governance">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Governance</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item has-children" data-submenu="governance-admin">
+                        ⟐ Admin
+                        <span class="expand-icon">▶</span>
+                    </div>
+                    <div class="submenu-item" data-submenu="governance-security">⟐ Security</div>
+                    <div class="submenu-item has-children" data-submenu="governance-settings">
+                        ⟐ Settings
+                        <span class="expand-icon">▶</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Section -->
+            <div class="menu-item" data-page="system">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ System</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item has-children" data-submenu="system-systems">
+                        ⟐ Systems
+                        <span class="expand-icon">▶</span>
+                    </div>
+                    <div class="submenu-item" data-submenu="system-interfaces">⟐ Interfaces</div>
+                    <div class="submenu-item" data-submenu="system-objects">⟐ Objects</div>
+                </div>
+            </div>
+            
+            <!-- Intelligence Section -->
+            <div class="menu-item" data-page="intelligence">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Intelligence</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="intelligence-logic">⟐ Logic</div>
+                    <div class="submenu-item" data-submenu="intelligence-memory">⟐ Memory</div>
+                    <div class="submenu-item" data-submenu="intelligence-states">⟐ States</div>
+                </div>
+            </div>
+            
+            <!-- Infrastructure Section -->
+            <div class="menu-item" data-page="infrastructure">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Infrastructure</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="infra-processes">⟐ Processes</div>
+                    <div class="submenu-item" data-submenu="infra-networks">⟐ Networks</div>
+                    <div class="submenu-item" data-submenu="infra-energies">⟐ Energies</div>
+                </div>
+            </div>
+            
+            <!-- Experience Section -->
+            <div class="menu-item" data-page="experience">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Experience</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="exp-experiences">⟐ Experiences</div>
+                    <div class="submenu-item" data-submenu="exp-expressions">⟐ Expressions</div>
+                    <div class="submenu-item" data-submenu="exp-perspectives">⟐ Perspectives</div>
+                </div>
+            </div>
+            
+            <!-- Reality Section -->
+            <div class="menu-item" data-page="reality">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Reality</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="reality-gravities">⟐ Gravities</div>
+                    <div class="submenu-item" data-submenu="reality-times">⟐ Times</div>
+                    <div class="submenu-item has-children" data-submenu="reality-spaces">
+                        ⟐ Spaces
+                        <span class="expand-icon">▶</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nested Submenu Content for Left Menu -->
+    <div id="submenu-content-governance-settings" class="nested-submenu" style="display: none;">
+        <div class="submenu-item" data-submenu="settings-ui-transparency" style="flex-direction: column; align-items: flex-start; padding: 12px;">
+            <div style="margin-bottom: 8px; font-weight: 600;">⟐ UI Transparency</div>
+            <input type="range" id="ui-transparency-slider" min="0" max="100" value="100" 
+                   style="width: 100%; cursor: pointer;">
+            <div style="display: flex; justify-content: space-between; width: 100%; font-size: 10px; margin-top: 4px;">
+                <span>Hidden</span>
+                <span id="transparency-value">100%</span>
+                <span>Opaque</span>
+            </div>
+        </div>
+        <div class="submenu-item" data-submenu="settings-preferences">⟐ Preferences</div>
+        <div class="submenu-item" data-submenu="settings-display">⟐ Display</div>
+        <div class="submenu-item" data-submenu="settings-controls">⟐ Controls</div>
+    </div>
+
+    <div id="submenu-content-governance-admin" class="nested-submenu" style="display: none;">
+        <div class="submenu-item" data-submenu="admin-particle">⟐ Particle Behavior</div>
+        <div class="submenu-item has-children" data-submenu="admin-theme">
+            ⟐ Theme
+            <span class="expand-icon">▶</span>
+        </div>
+        <div class="submenu-item has-children" data-submenu="admin-restart">
+            ⟐ Restart App
+            <span class="expand-icon">▶</span>
+        </div>
+        <div class="submenu-item" data-submenu="admin-users">⟐ Users</div>
+        <div class="submenu-item" data-submenu="admin-permissions">⟐ Permissions</div>
+    </div>
+
+    <div id="submenu-content-system-systems" class="nested-submenu" style="display: none;">
+        <div class="submenu-item" data-submenu="systems-myspace">⟐ MySpace</div>
+        <div class="submenu-item" data-submenu="systems-controllers">⟐ Controllers</div>
+        <div class="submenu-item" data-submenu="systems-nav">⟐ NAV</div>
+        <div class="submenu-item" data-submenu="systems-rendering">⟐ Rendering</div>
+        <div class="submenu-item" data-submenu="systems-audio">⟐ Audio</div>
+        <div class="submenu-item" data-submenu="systems-input">⟐ Input</div>
+        <div class="submenu-item" data-submenu="systems-network">⟐ Network</div>
+    </div>
+
+    <div id="submenu-content-reality-spaces" class="nested-submenu" style="display: none;">
+        <div class="submenu-item" data-submenu="spaces-default">⟐ Default Space</div>
+        <div class="submenu-item" data-submenu="spaces-myspace">⟐ MySpace</div>
+        <div class="submenu-item" data-submenu="spaces-workspace">⟐ Workspace</div>
+        <div class="submenu-item" data-submenu="spaces-mindspace">⟐ MindSpace</div>
+        <div class="submenu-item" data-submenu="spaces-timespace">⟐ TimeSpace</div>
+        <div class="submenu-item" data-submenu="spaces-innerspace">⟐ InnerSpace</div>
+        <div class="submenu-item" data-submenu="spaces-outerspace">⟐ OuterSpace</div>
+    </div>
+
+    <div id="submenu-content-admin-theme" class="nested-submenu" style="display: none;">
+        <div class="submenu-item" data-submenu="theme-dark">⟐ Dark Mode</div>
+        <div class="submenu-item" data-submenu="theme-light">⟐ Light Mode</div>
+        <div class="submenu-item" data-submenu="theme-custom">⟐ Custom Theme</div>
+    </div>
+
+    <div id="submenu-content-admin-restart" class="nested-submenu" style="display: none;">
+        <div class="submenu-item" data-submenu="restart-soft">⟐ Soft Restart</div>
+        <div class="submenu-item" data-submenu="restart-hard">⟐ Hard Restart</div>
+        <div class="submenu-item" data-submenu="restart-factory">⟐ Factory Reset</div>
+    </div>
+
+    <!-- Right Side Menu (Site Pages) -->
+    <div class="side-menu" id="right-menu">
+        <div class="menu-header">
+            <div class="menu-title">⟐-• NAVIGATION</div>
+        </div>
+        <div class="breadcrumb" id="right-breadcrumb">
+            <span class="breadcrumb-item breadcrumb-current">Navigation</span>
+        </div>
+        <div class="menu-items">
+            <!-- Account with submenu -->
+            <div class="menu-item" data-page="account">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Account</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="account-login">⟐ Login</div>
+                    <div class="submenu-item" data-submenu="account-profile">⟐ Profile</div>
+                    <div class="submenu-item" data-submenu="account-dashboard">⟐ Dashboard</div>
+                </div>
+            </div>
+            
+            <!-- Home -->
+            <div class="menu-item" data-page="home">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Home</span>
+                </div>
+            </div>
+            
+            <!-- About with submenu -->
+            <div class="menu-item" data-page="about">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ About</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="about-me">⟐ About Me</div>
+                    <div class="submenu-item" data-submenu="about-supporters">⟐ Supporters</div>
+                </div>
+            </div>
+            
+            <!-- Work with submenu -->
+            <div class="menu-item" data-page="work">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Work</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="work-portfolio">⟐ Portfolio</div>
+                </div>
+            </div>
+            
+            <!-- Offerings with submenu -->
+            <div class="menu-item" data-page="offerings">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Offerings</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="offerings-products">⟐ Products</div>
+                    <div class="submenu-item" data-submenu="offerings-services">⟐ Services</div>
+                </div>
+            </div>
+            
+            <!-- Resources -->
+            <div class="menu-item" data-page="resources">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Resources</span>
+                </div>
+            </div>
+            
+            <!-- Network with submenu -->
+            <div class="menu-item" data-page="network">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Network</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="network-social">⟐ Social Links</div>
+                    <div class="submenu-item" data-submenu="network-communities">⟐ Communities</div>
+                    <div class="submenu-item" data-submenu="network-collaborators">⟐ Collaborators</div>
+                    <div class="submenu-item" data-submenu="network-spaces">⟐ Spaces</div>
+                </div>
+            </div>
+            
+            <!-- OmniChannel with submenu -->
+            <div class="menu-item" data-page="omnichannel">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ OmniChannel</span>
+                    <span class="expand-icon">▶</span>
+                </div>
+                <div class="submenu">
+                    <div class="submenu-item" data-submenu="omni-updates">⟐ OmniFeed: Updates</div>
+                    <div class="submenu-item" data-submenu="omni-logs">⟐ OmniFeed: Logs</div>
+                    <div class="submenu-item" data-submenu="omni-drops">⟐ OmniFeed: Drops</div>
+                    <div class="submenu-item" data-submenu="omni-perspectives">⟐ OmniFeed: Perspectives</div>
+                    <div class="submenu-item" data-submenu="omni-experiments">⟐ OmniFeed: Experiments</div>
+                    <div class="submenu-item" data-submenu="omni-media">⟐ OmniFeed: Media</div>
+                </div>
+            </div>
+            
+            <!-- Contact -->
+            <div class="menu-item" data-page="contact">
+                <div class="menu-item-header">
+                    <span style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">⟐ Contact</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docks -->
+    <div class="dock hidden" id="dock-bottom">
+        <!-- Manually populated panel cubes -->
+        <div class="dock-item dock-cube" draggable="true" data-panel-id="cube-face-panel" style="width: 50px; height: 50px; background: rgba(25, 25, 30, 0.95); border: 1px solid rgba(0, 102, 255, 0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; transition: all 0.3s; margin: 4px;">
+            <div style="transform: rotate(-45deg); font-size: 8px; font-weight: 700; color: rgba(255, 255, 255, 0.9); letter-spacing: 0.5px; font-family: 'Orbitron', sans-serif; text-align: center; line-height: 1.2; word-break: break-word; max-width: 40px; pointer-events: none;">CUBE FC</div>
+        </div>
+        <div class="dock-item dock-cube" draggable="true" data-panel-id="omnisense-panel" style="width: 50px; height: 50px; background: rgba(25, 25, 30, 0.95); border: 1px solid rgba(0, 102, 255, 0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; transition: all 0.3s; margin: 4px;">
+            <div style="transform: rotate(-45deg); font-size: 8px; font-weight: 700; color: rgba(255, 255, 255, 0.9); letter-spacing: 0.5px; font-family: 'Orbitron', sans-serif; text-align: center; line-height: 1.2; word-break: break-word; max-width: 40px; pointer-events: none;">OMNISENS</div>
+        </div>
+        <div class="dock-item dock-cube" draggable="true" data-panel-id="particle-behavior-panel" style="width: 50px; height: 50px; background: rgba(25, 25, 30, 0.95); border: 1px solid rgba(0, 102, 255, 0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; transition: all 0.3s; margin: 4px;">
+            <div style="transform: rotate(-45deg); font-size: 8px; font-weight: 700; color: rgba(255, 255, 255, 0.9); letter-spacing: 0.5px; font-family: 'Orbitron', sans-serif; text-align: center; line-height: 1.2; word-break: break-word; max-width: 40px; pointer-events: none;">PARTICL</div>
+        </div>
+    </div>
+
+    <div class="dock hidden" id="dock-top">
+        <!-- Available for manual organization -->
+    </div>
+
+    <div class="dock hidden" id="dock-left">
+        <!-- Manually populated panel cubes -->
+        <div class="dock-item dock-cube" draggable="true" data-panel-id="user-controls-panel" style="width: 50px; height: 50px; background: rgba(25, 25, 30, 0.95); border: 1px solid rgba(0, 102, 255, 0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; transition: all 0.3s; margin: 4px;">
+            <div style="transform: rotate(-45deg); font-size: 8px; font-weight: 700; color: rgba(255, 255, 255, 0.9); letter-spacing: 0.5px; font-family: 'Orbitron', sans-serif; text-align: center; line-height: 1.2; word-break: break-word; max-width: 40px; pointer-events: none;">USER</div>
+        </div>
+        <div class="dock-item dock-cube" draggable="true" data-panel-id="default-space-panel" style="width: 50px; height: 50px; background: rgba(25, 25, 30, 0.95); border: 1px solid rgba(0, 102, 255, 0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; transition: all 0.3s; margin: 4px;">
+            <div style="transform: rotate(-45deg); font-size: 8px; font-weight: 700; color: rgba(255, 255, 255, 0.9); letter-spacing: 0.5px; font-family: 'Orbitron', sans-serif; text-align: center; line-height: 1.2; word-break: break-word; max-width: 40px; pointer-events: none;">DEFLT SP</div>
+        </div>
+        <div class="dock-item dock-cube" draggable="true" data-panel-id="orbit-controls-panel" style="width: 50px; height: 50px; background: rgba(25, 25, 30, 0.95); border: 1px solid rgba(0, 102, 255, 0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; transition: all 0.3s; margin: 4px;">
+            <div style="transform: rotate(-45deg); font-size: 8px; font-weight: 700; color: rgba(255, 255, 255, 0.9); letter-spacing: 0.5px; font-family: 'Orbitron', sans-serif; text-align: center; line-height: 1.2; word-break: break-word; max-width: 40px; pointer-events: none;">ORBIT</div>
+        </div>
+    </div>
+
+    <div class="dock hidden" id="dock-right">
+        <!-- Available for user organization -->
+    </div>
+
+    <!-- Restart Prompt Modal -->
+    <div class="prompt-modal" id="restart-prompt">
+        <button class="prompt-close" onclick="document.getElementById('restart-prompt').classList.remove('visible')">×</button>
+        <div class="prompt-title">Restart Application?</div>
+        <div class="prompt-message">Are you sure you want to restart the application? All unsaved progress will be lost.</div>
+        <div class="prompt-buttons">
+            <button class="prompt-btn" onclick="location.reload()">Yes</button>
+            <button class="prompt-btn" onclick="document.getElementById('restart-prompt').classList.remove('visible')">No</button>
+            <button class="prompt-btn" onclick="showWisdomPrompt()">Not Sure</button>
+        </div>
+    </div>
+
+    <!-- Wisdom Prompt Modal -->
+    <div class="prompt-modal" id="wisdom-prompt">
+        <button class="prompt-close" onclick="document.getElementById('wisdom-prompt').classList.remove('visible')">×</button>
+        <div class="prompt-title">Maybe This Will Help...</div>
+        <div class="prompt-message" id="wisdom-text"></div>
+        <div class="prompt-buttons">
+            <button class="prompt-btn" onclick="document.getElementById('wisdom-prompt').classList.remove('visible')">Close</button>
+        </div>
+    </div>
+
+    <!-- Theme Selector Modal -->
+    <div class="prompt-modal" id="theme-prompt">
+        <button class="prompt-close" onclick="document.getElementById('theme-prompt').classList.remove('visible')">×</button>
+        <div class="prompt-title">Select Theme</div>
+        <div class="theme-grid" id="theme-grid"></div>
+    </div>
+
+    <!-- Left Hand Menu -->
+    <div class="hand-menu" id="left-hand">
+        <div class="hand-circle">LH</div>
+        <div class="radial-menu" id="lh-radial"></div>
+    </div>
+
+    <!-- Right Hand Menu -->
+    <div class="hand-menu" id="right-hand">
+        <div class="hand-circle">RH</div>
+        <div class="radial-menu" id="rh-radial"></div>
+    </div>
+
+    <!-- Conscious Hand Menu -->
+    <div class="hand-menu" id="conscious-hand">
+        <div class="hand-circle">CH</div>
+        <div class="radial-menu" id="ch-radial"></div>
+    </div>
+
+    <!-- RH Horizontal Tool Selection Menu (BotW style) -->
+    <div id="rh-tool-menu" style="display: none;">
+        <div class="tool-menu-container">
+            <div class="tool-menu-header">⟐-• RIGHT HAND TOOLS</div>
+            <div class="tool-menu-items" id="rh-tool-menu-items">
+                <!-- Tools will be populated here -->
+            </div>
+            <div class="tool-menu-footer">
+                <span id="rh-tool-description">Select a tool to view details</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LH Horizontal Tool Selection Menu -->
+    <div id="lh-tool-menu" style="display: none;">
+        <div class="tool-menu-container">
+            <div class="tool-menu-header">⟐-• LEFT HAND TOOLS</div>
+            <div class="tool-menu-items" id="lh-tool-menu-items">
+                <!-- Tools will be populated here -->
+            </div>
+            <div class="tool-menu-footer">
+                <span id="lh-tool-description">Select a tool to view details</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CH Horizontal Tool Selection Menu -->
+    <div id="ch-tool-menu" style="display: none;">
+        <div class="tool-menu-container">
+            <div class="tool-menu-header">⟐-• CONSCIOUS HAND TOOLS</div>
+            <div class="tool-menu-items" id="ch-tool-menu-items">
+                <!-- Tools will be populated here -->
+            </div>
+            <div class="tool-menu-footer">
+                <span id="ch-tool-description">Select a tool to view details</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pause Overlay -->
+    <div class="pause-overlay" id="pause-overlay">
+        <div class="pause-menu">
+            <div class="pause-title">PAUSED</div>
+            <button class="pause-btn" id="resume-btn">Resume</button>
+        </div>
+    </div>
+
+    <!-- Pocket Panel -->
+    <div class="pocket-panel" id="pocket-panel">
+        <div class="pocket-header">USER POCKET</div>
+        <div class="pocket-grid" id="pocket-grid"></div>
+        <div class="pocket-pagination" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; padding: 10px;">
+            <button id="pocket-prev-page" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px;">◀ PREV</button>
+            <span id="pocket-page-info" style="font-size: 12px; color: #fff; min-width: 80px; text-align: center;">Page 1 / 10</span>
+            <button id="pocket-next-page" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px;">NEXT ▶</button>
+        </div>
+    </div>
+
+    <!-- Particle Behavior Panel -->
+    <div id="particle-behavior-panel" class="minimized" style="display: none;">
+        <div class="panel-header" id="particle-behavior-header">
+            <span class="panel-title">⟐ PARTICLE BEHAVIOR</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="particle-dock-btn" title="Auto Dock">⚓</button>
+                <button class="panel-btn" id="particle-minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="particle-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content hidden" id="particle-panel-content" style="padding: 16px;">
+        
+        <div class="behavior-section" style="margin-bottom: 25px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Behavior Mode</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px;">
+                <button class="behavior-mode-btn active" data-mode="calm" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">CALM</button>
+                <button class="behavior-mode-btn" data-mode="forward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">FORWARD</button>
+                <button class="behavior-mode-btn" data-mode="backward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">BACKWARD</button>
+                <button class="behavior-mode-btn" data-mode="upward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">UPWARD</button>
+                <button class="behavior-mode-btn" data-mode="downward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">DOWNWARD</button>
+                <button class="behavior-mode-btn" data-mode="connected" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">CONNECTED</button>
+                <button class="behavior-mode-btn" data-mode="glitch" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">GLITCH</button>
+                <button class="behavior-mode-btn" data-mode="constellation" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">CONSTELLATION</button>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="forward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Forward Flow Speed</div>
+            <input type="range" id="forward-speed-slider" min="1" max="100" value="20" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="forward-speed-value">20</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="backward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Backward Flow Speed</div>
+            <input type="range" id="backward-speed-slider" min="1" max="100" value="20" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="backward-speed-value">20</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="upward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Upward Flow Speed</div>
+            <input type="range" id="upward-speed-slider" min="1" max="100" value="20" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="upward-speed-value">20</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="downward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Downward Flow Speed</div>
+            <input type="range" id="downward-speed-slider" min="1" max="100" value="20" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="downward-speed-value">20</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="connected-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Connection Frequency</div>
+            <input type="range" id="connected-frequency-slider" min="1" max="100" value="50" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Sparse</span>
+                <span id="connected-frequency-value">50</span>
+                <span>Dense</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="glitch-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Glitch Intensity</div>
+            <input type="range" id="glitch-intensity-slider" min="1" max="100" value="50" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Subtle</span>
+                <span id="glitch-intensity-value">50</span>
+                <span>Extreme</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="constellation-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Connection Distance</div>
+            <input type="range" id="constellation-distance-slider" min="1" max="100" value="30" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Close</span>
+                <span id="constellation-distance-value">30</span>
+                <span>Far</span>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="margin: 30px 0; height: 1px; background: rgba(128, 128, 128, 0.3);"></div>
+        
+        <!-- General Particle Options -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 15px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">General Options</div>
+            
+            <!-- Particle Count -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Particle Count</div>
+                <input type="range" id="particle-count-slider" min="100" max="10000" value="5000" step="100" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>100</span>
+                    <span id="particle-count-value">5000</span>
+                    <span>10000</span>
+                </div>
+            </div>
+            
+            <!-- Particle Size -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Particle Size</div>
+                <input type="range" id="particle-size-slider" min="0.1" max="5" value="1" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0.1</span>
+                    <span id="particle-size-value">1.0</span>
+                    <span>5.0</span>
+                </div>
+            </div>
+            
+            <!-- Particle Color -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Particle Color</div>
+                <input type="color" id="particle-color-picker" value="#ffffff" style="width: 100%; height: 40px; cursor: pointer; border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; background: transparent;">
+            </div>
+            
+            <!-- X-Axis Movement -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">X-Axis Range</div>
+                <input type="range" id="particle-x-range" min="0" max="200" value="100" step="10" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="particle-x-range-value">100</span>
+                    <span>200</span>
+                </div>
+            </div>
+            
+            <!-- Y-Axis Movement -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Y-Axis Range</div>
+                <input type="range" id="particle-y-range" min="0" max="200" value="100" step="10" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="particle-y-range-value">100</span>
+                    <span>200</span>
+                </div>
+            </div>
+            
+            <!-- Z-Axis Movement -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Z-Axis Range</div>
+                <input type="range" id="particle-z-range" min="0" max="200" value="100" step="10" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="particle-z-range-value">100</span>
+                    <span>200</span>
+                </div>
+            </div>
+            
+            <!-- Particle Speed -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Movement Speed</div>
+                <input type="range" id="particle-speed-slider" min="0" max="10" value="1" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="particle-speed-value">1.0</span>
+                    <span>10</span>
+                </div>
+            </div>
+            
+            <!-- Particle Opacity -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Particle Opacity</div>
+                <input type="range" id="particle-opacity-slider" min="0" max="1" value="0.8" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0%</span>
+                    <span id="particle-opacity-value">80%</span>
+                    <span>100%</span>
+                </div>
+            </div>
+            
+            <!-- Update Button -->
+            <div style="margin-top: 30px;">
+                <button id="particle-update-btn" class="myspace-control-btn" style="width: 100%; padding: 14px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);">
+                    ⟐ UPDATE PARTICLES
+                </button>
+            </div>
+        </div>
+        
+        </div>
+        <!-- Resize Handle -->
+        <div class="resize-handle"></div>
+    </div>
+
+    <!-- Orbit Controls Panel -->
+    <div id="orbit-controls-panel" class="minimized" style="display: none;">
+        <div class="panel-header" id="orbit-panel-header">
+            <span class="panel-title">⟐ ORBIT CONTROLS</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="orbit-dock-btn" title="Auto Dock">⚓</button>
+                <button class="panel-btn" id="orbit-minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="orbit-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content hidden" id="orbit-panel-content" style="padding: 16px;">
+            
+            <!-- Enable/Disable -->
+            <div style="margin-bottom: 20px;">
+                <button id="orbit-enabled-btn" class="myspace-control-btn active" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    ✓ ENABLED
+                </button>
+            </div>
+            
+            <!-- Auto Rotate -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Auto Rotate</div>
+                <button id="orbit-autorotate-btn" class="myspace-control-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    AUTO ROTATE OFF
+                </button>
+            </div>
+            
+            <!-- Auto Rotate Speed -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Auto Rotate Speed</div>
+                <input type="range" id="orbit-autorotate-speed" min="0" max="10" value="2" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="orbit-autorotate-speed-value">2.0</span>
+                    <span>10</span>
+                </div>
+            </div>
+            
+            <!-- Damping -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Enable Damping</div>
+                <button id="orbit-damping-btn" class="myspace-control-btn active" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    ✓ DAMPING ON
+                </button>
+            </div>
+            
+            <!-- Damping Factor -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Damping Factor</div>
+                <input type="range" id="orbit-damping-factor" min="0" max="1" value="0.05" step="0.01" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="orbit-damping-factor-value">0.05</span>
+                    <span>1</span>
+                </div>
+            </div>
+            
+            <!-- Rotate Speed -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Rotate Speed</div>
+                <input type="range" id="orbit-rotate-speed" min="0" max="5" value="1" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="orbit-rotate-speed-value">1.0</span>
+                    <span>5</span>
+                </div>
+            </div>
+            
+            <!-- Pan Speed -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Pan Speed</div>
+                <input type="range" id="orbit-pan-speed" min="0" max="5" value="1" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="orbit-pan-speed-value">1.0</span>
+                    <span>5</span>
+                </div>
+            </div>
+            
+            <!-- Zoom Speed -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Zoom Speed</div>
+                <input type="range" id="orbit-zoom-speed" min="0" max="5" value="1" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="orbit-zoom-speed-value">1.0</span>
+                    <span>5</span>
+                </div>
+            </div>
+            
+            <!-- Min Distance -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Min Distance</div>
+                <input type="range" id="orbit-min-distance" min="0" max="1000" value="0" step="10" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="orbit-min-distance-value">0</span>
+                    <span>1000</span>
+                </div>
+            </div>
+            
+            <!-- Max Distance -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Max Distance</div>
+                <input type="range" id="orbit-max-distance" min="0" max="10000" value="Infinity" step="100" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="orbit-max-distance-value">∞</span>
+                    <span>10000</span>
+                </div>
+            </div>
+            
+            <!-- Min Polar Angle -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Min Polar Angle (deg)</div>
+                <input type="range" id="orbit-min-polar" min="0" max="180" value="0" step="1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0°</span>
+                    <span id="orbit-min-polar-value">0°</span>
+                    <span>180°</span>
+                </div>
+            </div>
+            
+            <!-- Max Polar Angle -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Max Polar Angle (deg)</div>
+                <input type="range" id="orbit-max-polar" min="0" max="180" value="180" step="1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0°</span>
+                    <span id="orbit-max-polar-value">180°</span>
+                    <span>180°</span>
+                </div>
+            </div>
+            
+            <!-- Min Azimuth Angle -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Min Azimuth Angle (deg)</div>
+                <input type="range" id="orbit-min-azimuth" min="-180" max="180" value="-180" step="1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>-180°</span>
+                    <span id="orbit-min-azimuth-value">-∞</span>
+                    <span>180°</span>
+                </div>
+            </div>
+            
+            <!-- Max Azimuth Angle -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Max Azimuth Angle (deg)</div>
+                <input type="range" id="orbit-max-azimuth" min="-180" max="180" value="180" step="1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>-180°</span>
+                    <span id="orbit-max-azimuth-value">∞</span>
+                    <span>180°</span>
+                </div>
+            </div>
+            
+            <!-- Enable Pan -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Enable Pan</div>
+                <button id="orbit-enable-pan-btn" class="myspace-control-btn active" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    ✓ PAN ON
+                </button>
+            </div>
+            
+            <!-- Enable Zoom -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Enable Zoom</div>
+                <button id="orbit-enable-zoom-btn" class="myspace-control-btn active" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    ✓ ZOOM ON
+                </button>
+            </div>
+            
+            <!-- Enable Rotate -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Enable Rotate</div>
+                <button id="orbit-enable-rotate-btn" class="myspace-control-btn active" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    ✓ ROTATE ON
+                </button>
+            </div>
+            
+            <!-- Update Button -->
+            <div style="margin-top: 30px;">
+                <button id="orbit-update-btn" class="myspace-control-btn" style="width: 100%; padding: 14px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);">
+                    ⟐ UPDATE CONTROLS
+                </button>
+            </div>
+            
+        </div>
+        <!-- Resize Handle -->
+        <div class="resize-handle"></div>
+    </div>
+
+    <!-- User Controls Panel -->
+    <div id="user-controls-panel" class="minimized" style="display: none;">
+        <div class="panel-header" id="user-panel-header">
+            <span class="panel-title">⟐ USER CONTROLS</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="user-dock-btn" title="Auto Dock">⚓</button>
+                <button class="panel-btn" id="user-minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="user-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content hidden" id="user-panel-content" style="padding: 16px;">
+            
+            <!-- God Mode -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">God Mode</div>
+                <button id="user-godmode-btn" class="myspace-control-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    GOD MODE OFF
+                </button>
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-top: 6px;">Super fast movement & no gravity</div>
+            </div>
+            
+            <!-- Movement Speed -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Movement Speed</div>
+                <input type="range" id="user-move-speed" min="0.1" max="10" value="0.2" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0.1</span>
+                    <span id="user-move-speed-value">0.2</span>
+                    <span>10.0</span>
+                </div>
+            </div>
+            
+            <!-- Jump Speed -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Jump Speed</div>
+                <input type="range" id="user-jump-speed" min="0.1" max="5" value="1" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0.1</span>
+                    <span id="user-jump-speed-value">1.0</span>
+                    <span>5.0</span>
+                </div>
+            </div>
+            
+            <!-- Sprint Multiplier -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Sprint Multiplier</div>
+                <input type="range" id="user-sprint-mult" min="1" max="5" value="2" step="0.5" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>1x</span>
+                    <span id="user-sprint-mult-value">2.0x</span>
+                    <span>5x</span>
+                </div>
+            </div>
+            
+            <!-- Gravity -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Gravity</div>
+                <input type="range" id="user-gravity" min="0" max="2" value="0.5" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="user-gravity-value">0.5</span>
+                    <span>2.0</span>
+                </div>
+            </div>
+            
+            <!-- Look Sensitivity -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Look Sensitivity</div>
+                <input type="range" id="user-look-sens" min="0.0001" max="0.01" value="0.002" step="0.0001" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>Low</span>
+                    <span id="user-look-sens-value">0.002</span>
+                    <span>High</span>
+                </div>
+            </div>
+            
+            <!-- Enable Invert Y -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Invert Y-Axis</div>
+                <button id="user-invert-y-btn" class="myspace-control-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    INVERT Y OFF
+                </button>
+            </div>
+            
+            <!-- Update Button -->
+            <div style="margin-top: 30px;">
+                <button id="user-update-btn" class="myspace-control-btn" style="width: 100%; padding: 14px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);">
+                    ⟐ UPDATE CONTROLS
+                </button>
+            </div>
+            
+        </div>
+        <!-- Resize Handle -->
+        <div class="resize-handle"></div>
+    </div>
+
+    <!-- Default Space Panel -->
+    <div id="default-space-panel" class="minimized" style="display: none;">
+        <div class="panel-header" id="default-space-header">
+            <span class="panel-title">⟐ DEFAULT SPACE</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="default-space-dock-btn" title="Auto Dock">⚓</button>
+                <button class="panel-btn" id="default-space-minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="default-space-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content hidden" id="default-space-content" style="padding: 16px;">
+            
+            <!-- Dark Mode -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Dark Mode</div>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="dark-mode-checkbox" checked style="width: 20px; height: 20px; cursor: pointer; margin-right: 10px;">
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">Enable Dark Background</span>
+                </label>
+            </div>
+            
+            <!-- Light Mode -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Light Mode</div>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="light-mode-checkbox" style="width: 20px; height: 20px; cursor: pointer; margin-right: 10px;">
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">Enable Light Background</span>
+                </label>
+            </div>
+            
+            <!-- Divider -->
+            <div style="margin: 25px 0; height: 1px; background: rgba(128, 128, 128, 0.3);"></div>
+            
+            <!-- Default Color Picker -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Default Background Color</div>
+                <input type="color" id="default-bg-color-picker" value="#a1a1a1" style="width: 100%; height: 50px; cursor: pointer; border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; background: transparent;">
+            </div>
+            
+            <!-- Grid Color Picker -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Color</div>
+                <input type="color" id="grid-color-picker" value="#ffffff" style="width: 100%; height: 50px; cursor: pointer; border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; background: transparent;">
+            </div>
+            
+            <!-- Divider -->
+            <div style="margin: 25px 0; height: 1px; background: rgba(128, 128, 128, 0.3);"></div>
+            
+            <!-- Skybox Image/Video Upload -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Skybox Image/Video</div>
+                <div style="margin-bottom: 10px;">
+                    <label for="skybox-file-input" style="display: block; width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.3s;">
+                        📁 CHOOSE FILE
+                    </label>
+                    <input type="file" id="skybox-file-input" accept="image/*,video/*" style="display: none;">
+                </div>
+                <div id="skybox-filename" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 8px; text-align: center;">
+                    No file selected
+                </div>
+            </div>
+            
+            <!-- Remove Skybox Button -->
+            <div style="margin-bottom: 20px;">
+                <button id="remove-skybox-btn" class="myspace-control-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    🗑️ REMOVE SKYBOX
+                </button>
+            </div>
+            
+            <!-- Update Button -->
+            <div style="margin-top: 30px;">
+                <button id="default-space-update-btn" class="myspace-control-btn" style="width: 100%; padding: 14px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);">
+                    ⟐ UPDATE SPACE
+                </button>
+            </div>
+            
+        </div>
+        <!-- Resize Handle -->
+        <div class="resize-handle"></div>
+    </div>
+
+    <!-- MySpace Panel -->
+        <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 25px 0;"></div>
+        
+        <!-- Particle Count -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Particle Count</div>
+            <input type="range" id="particle-count-slider" min="3000" max="6000" value="3000" step="100" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>3,000</span>
+                <span id="particle-count-value">3,000</span>
+                <span>6,000</span>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 25px 0;"></div>
+        
+        <!-- Particle System Rotation -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 15px; font-size: 14px;">Particle System Rotation</div>
+            
+            <!-- X Rotation -->
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">X-Axis</span>
+                    <span id="particle-rot-x-value" style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">0°</span>
+                </div>
+                <input type="range" id="particle-rot-x-slider" min="0" max="360" value="0" style="width: 100%; cursor: pointer;">
+            </div>
+            
+            <!-- Y Rotation -->
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">Y-Axis</span>
+                    <span id="particle-rot-y-value" style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">0°</span>
+                </div>
+                <input type="range" id="particle-rot-y-slider" min="0" max="360" value="0" style="width: 100%; cursor: pointer;">
+            </div>
+            
+            <!-- Z Rotation -->
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">Z-Axis</span>
+                    <span id="particle-rot-z-value" style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">71°</span>
+                </div>
+                <input type="range" id="particle-rot-z-slider" min="0" max="360" value="71" style="width: 100%; cursor: pointer;">
+            </div>
+            
+            <button id="particle-rot-reset" style="width: 100%; padding: 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600;">
+                RESET ROTATION
+            </button>
+        </div>
+    </div>
+
+    <!-- FAQ Panel -->
+    <div id="faq-panel">
+        <div class="panel-header">
+            <span class="panel-title">⟐-• CONTROLS & FAQ</span>
+            <button class="panel-btn close-btn" id="faq-close">×</button>
+        </div>
+        <div class="faq-content">
+            <div class="faq-item">
+                <div class="faq-question">⌨️ Keyboard Controls</div>
+                <div class="faq-answer" style="line-height: 2;">
+                    <strong>W</strong> - Move forward<br>
+                    <strong>A</strong> - Move left<br>
+                    <strong>S</strong> - Move backward<br>
+                    <strong>D</strong> - Move right<br>
+                    <strong>R</strong> - Move up<br>
+                    <strong>F</strong> - Move down<br>
+                    <strong>C</strong> - Hold to enable mouse look (FPS mode)<br>
+                    <strong>O</strong> - Reset camera to origin (0, 0, 10)<br>
+                    <strong>0</strong> - Toggle MySpace (collapse/expand grid)<br>
+                    <strong>9</strong> - Toggle User Pocket<br>
+                    <strong>Q</strong> - Toggle Controls & FAQ panel<br>
+                    <strong>X</strong> - Toggle Inspector panel<br>
+                    <strong>Z</strong> - Toggle docks visibility<br>
+                    <strong>Left Shift</strong> - Toggle Left Hand menu<br>
+                    <strong>Right Shift</strong> - Toggle Right Hand menu<br>
+                    <strong>Enter</strong> - Toggle Conscious Hand menu
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">🖱️ Mouse Controls</div>
+                <div class="faq-answer">
+                    <strong>Hold C + Move mouse</strong> - Look around (FPS style)<br>
+                    <strong>Click objects</strong> - Select journal pages or grid panels<br>
+                    <strong>Click + Drag</strong> - Orbit camera around scene
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">📱 Mobile Controls</div>
+                <div class="faq-answer">
+                    <strong>Joystick (bottom left)</strong> - Move camera position<br>
+                    <strong>Single finger touch on screen</strong> - Look around (FPS camera rotation)<br>
+                    <strong>POS/ROT/SCL buttons</strong> - Adjust position, rotation, scale<br>
+                    <strong>Action buttons (A1-A30)</strong> - Custom quick actions
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">🔍 UI Panels</div>
+                <div class="faq-answer">
+                    <strong>Top Left</strong> - Session info (space title, username, timer)<br>
+                    <strong>Top Right</strong> - Search panel (click icon to expand)<br>
+                    <strong>Inspector (X key)</strong> - Object properties and transparency<br>
+                    <strong>Side Menus</strong> - Click hamburger icons for navigation
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">✋ Hand Menus</div>
+                <div class="faq-answer">
+                    <strong>Left Hand (LH)</strong> - Left Shift key or LH button - Radial menu with 10 options<br>
+                    <strong>Right Hand (RH)</strong> - Right Shift key or RH button - Radial menu with 10 options<br>
+                    <strong>Conscious Hand (CH)</strong> - Enter key or CH button - Main menu controls including Pause Menu<br>
+                    Click on radial menu items to select options. Only one hand menu visible at a time.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">🌐 MySpace (Grid Sphere)</div>
+                <div class="faq-answer">
+                    The spherical grid is your personal space. Press <strong>0 key</strong> or the <strong>MS button</strong> to collapse/expand it. When collapsed, panels animate one-by-one into a smaller sphere. Access also via Conscious Hand menu → MySpace option.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">📦 User Pocket</div>
+                <div class="faq-answer">
+                    Your pocket stores up to <strong>20 items</strong>. Press <strong>9 key</strong> or select from Conscious Hand menu. The pocket panel slides in from the right with a 4x5 grid.<br><br>
+                    <strong>Cell States:</strong><br>
+                    • Empty slots: Dashed border, ready for items<br>
+                    • Items in pocket: 35% opacity (stored)<br>
+                    • Items deployed in scene: 20% opacity (active)<br><br>
+                    Click slots to deploy/recall items. Items can have password protection for security.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">How do I navigate the site?</div>
+                <div class="faq-answer">Click the hamburger menus (☰) at the top left (Admin/System) and top right (Site Pages) to access different sections. Click outside the menu to close it.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What are the docks?</div>
+                <div class="faq-answer">Docks are located on all four edges (top, bottom, left, right). They contain draggable items (D1-D14) you can move between docks by clicking and dragging. Press <strong>Z</strong> to show/hide all docks.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">How do I select and manipulate objects?</div>
+                <div class="faq-answer">Click on any journal page or grid panel to select it. Selected objects turn blue and the camera animates to focus on them. Press <strong>X</strong> to open the Inspector panel where you can adjust transparency (10-100%) and view object details.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What do the transform buttons do?</div>
+                <div class="faq-answer">The <strong>POS</strong>, <strong>ROT</strong>, and <strong>SCL</strong> buttons open transform panels to adjust position, rotation, and scale of selected objects with precise control. Use the step size control to determine how much each adjustment changes the values (range: -1000 to 1000).</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspector Panel -->
+    <div id="inspector-panel" class="minimized" style="position: fixed; left: 20px; top: 120px; display: block;">
+        <div class="panel-header" id="panel-header">
+            <span class="panel-title">⟐ INSPECTOR</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="inspector-dock-btn" title="Auto Dock">⚓</button>
+                <button class="panel-btn" id="minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content hidden" id="panel-content" style="padding: 16px;">
+            <!-- Selected Object Name -->
+            <div style="margin-bottom: 20px;">
+                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;">SELECTED OBJECT</div>
+                <div class="info-value" id="selected-name" style="font-size: 14px; font-weight: 700; color: #808080;">None</div>
+            </div>
+            
+            <!-- Object Transform Properties -->
+            <div id="object-details" style="display: none;">
+                <!-- Position -->
+                <div style="margin-bottom: 15px;">
+                    <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;">POSITION</div>
+                    <div id="object-position" style="font-family: 'Courier New', monospace; font-size: 12px; color: #fff; background: rgba(0, 0, 0, 0.3); padding: 8px; border-radius: 6px; border: 1px solid rgba(128, 128, 128, 0.3);">
+                        X: 0.00 | Y: 0.00 | Z: 0.00
+                    </div>
+                </div>
+                
+                <!-- Rotation -->
+                <div style="margin-bottom: 15px;">
+                    <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;">ROTATION</div>
+                    <div id="object-rotation" style="font-family: 'Courier New', monospace; font-size: 12px; color: #fff; background: rgba(0, 0, 0, 0.3); padding: 8px; border-radius: 6px; border: 1px solid rgba(128, 128, 128, 0.3);">
+                        X: 0.00 | Y: 0.00 | Z: 0.00
+                    </div>
+                </div>
+                
+                <!-- Scale -->
+                <div style="margin-bottom: 20px;">
+                    <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;">SCALE</div>
+                    <div id="object-scale" style="font-family: 'Courier New', monospace; font-size: 12px; color: #fff; background: rgba(0, 0, 0, 0.3); padding: 8px; border-radius: 6px; border: 1px solid rgba(128, 128, 128, 0.3);">
+                        X: 1.00 | Y: 1.00 | Z: 1.00
+                    </div>
+                </div>
+                
+                <!-- Divider -->
+                <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
+                
+                <!-- Object Data Section -->
+                <div style="margin-bottom: 20px;">
+                    <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">OBJECT DATA</div>
+                    
+                    <!-- Header Field -->
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Header</label>
+                        <input type="text" id="object-data-header" placeholder="Enter header..." style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 12px; outline: none;">
+                    </div>
+                    
+                    <!-- Body Field -->
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Body</label>
+                        <textarea id="object-data-body" placeholder="Enter body content..." style="width: 100%; min-height: 120px; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; outline: none; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <!-- Footer Field -->
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Footer</label>
+                        <input type="text" id="object-data-footer" placeholder="Enter footer..." style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 12px; outline: none;">
+                    </div>
+                    
+                    <!-- Icon Selector Section -->
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 8px;">Icon/Image</label>
+                        
+                        <!-- Icon Type Selector -->
+                        <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                            <button class="icon-type-btn active" data-type="emoji" style="flex: 1; padding: 6px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600;">📱 EMOJI</button>
+                            <button class="icon-type-btn" data-type="image" style="flex: 1; padding: 6px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600;">🖼️ IMAGE</button>
+                            <button class="icon-type-btn" data-type="fontawesome" style="flex: 1; padding: 6px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600;">⭐ ICON</button>
+                        </div>
+                        
+                        <!-- Emoji Picker -->
+                        <div id="emoji-picker" class="icon-picker-content" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-height: 150px; overflow-y: auto; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px;">
+                            <button class="emoji-option" data-emoji="😀" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">😀</button>
+                            <button class="emoji-option" data-emoji="📄" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">📄</button>
+                            <button class="emoji-option" data-emoji="📜" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">📜</button>
+                            <button class="emoji-option" data-emoji="⭐" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">⭐</button>
+                            <button class="emoji-option" data-emoji="❤️" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">❤️</button>
+                            <button class="emoji-option" data-emoji="🔥" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">🔥</button>
+                            <button class="emoji-option" data-emoji="💡" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">💡</button>
+                            <button class="emoji-option" data-emoji="🎯" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">🎯</button>
+                            <button class="emoji-option" data-emoji="🎨" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">🎨</button>
+                            <button class="emoji-option" data-emoji="🚀" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">🚀</button>
+                            <button class="emoji-option" data-emoji="💻" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">💻</button>
+                            <button class="emoji-option" data-emoji="📊" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 20px;">📊</button>
+                        </div>
+                        
+                        <!-- Image Upload -->
+                        <div id="image-picker" class="icon-picker-content" style="display: none;">
+                            <input type="file" id="icon-image-upload" accept="image/*" style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-size: 10px; cursor: pointer;">
+                            <div id="image-preview" style="margin-top: 8px; min-height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: rgba(255, 255, 255, 0.4); font-size: 10px;">No image selected</div>
+                        </div>
+                        
+                        <!-- Font Awesome Icons -->
+                        <div id="fontawesome-picker" class="icon-picker-content" style="display: none; grid-template-columns: repeat(6, 1fr); gap: 4px; max-height: 150px; overflow-y: auto; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px;">
+                            <button class="fa-option" data-icon="fa-home" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 16px;">🏠</button>
+                            <button class="fa-option" data-icon="fa-user" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 16px;">👤</button>
+                            <button class="fa-option" data-icon="fa-heart" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 16px;">❤️</button>
+                            <button class="fa-option" data-icon="fa-star" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 16px;">⭐</button>
+                            <button class="fa-option" data-icon="fa-cog" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 16px;">⚙️</button>
+                            <button class="fa-option" data-icon="fa-check" style="padding: 8px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; cursor: pointer; font-size: 16px;">✓</button>
+                        </div>
+                        
+                        <!-- Selected Icon Display -->
+                        <div id="selected-icon-display" style="margin-top: 8px; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: rgba(255, 255, 255, 0.6); font-size: 10px; text-align: center;">
+                            <span id="selected-icon-text">No icon selected</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button id="object-data-submit" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s; margin-bottom: 10px;">
+                        SAVE DATA
+                    </button>
+                    
+                    <!-- View Panel Button -->
+                    <button id="open-view-panel-btn" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                        📄 VIEW PANEL
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Info Section (Logic-style, expandable) -->
+            <div id="info-section" style="margin-top: 20px;">
+                <!-- Info Toggle Header -->
+                <div id="info-toggle" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(128, 128, 128, 0.2); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; cursor: pointer; margin-bottom: 0; transition: all 0.3s;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="info-arrow" style="font-size: 12px; transition: transform 0.3s;">▶</span>
+                        <span style="font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.8); letter-spacing: 0.5px;">INFO</span>
+                    </div>
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.5);">Click to expand</span>
+                </div>
+                
+                <!-- Info Content (Collapsible) -->
+                <div id="info-content" style="display: none; border: 1px solid rgba(128, 128, 128, 0.3); border-top: none; border-radius: 0 0 6px 6px; overflow: hidden; background: rgba(0, 0, 0, 0.2);">
+                    <!-- Keyboard Shortcuts Section -->
+                    <div style="padding: 12px; border-bottom: 1px solid rgba(128, 128, 128, 0.2);">
+                        <div style="font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px; letter-spacing: 0.5px;">KEYBOARD SHORTCUTS</div>
+                        <div style="font-family: 'Courier New', monospace; font-size: 10px; color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: rgba(255, 255, 255, 0.5);">POS Mode:</span>
+                                <span style="background: rgba(128, 128, 128, 0.3); padding: 2px 6px; border-radius: 3px;">P</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: rgba(255, 255, 255, 0.5);">ROT Mode:</span>
+                                <span style="background: rgba(128, 128, 128, 0.3); padding: 2px 6px; border-radius: 3px;">R</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: rgba(255, 255, 255, 0.5);">SCL Mode:</span>
+                                <span style="background: rgba(128, 128, 128, 0.3); padding: 2px 6px; border-radius: 3px;">S</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: rgba(255, 255, 255, 0.5);">Inspector:</span>
+                                <span style="background: rgba(128, 128, 128, 0.3); padding: 2px 6px; border-radius: 3px;">X</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: rgba(255, 255, 255, 0.5);">Reset Camera:</span>
+                                <span style="background: rgba(128, 128, 128, 0.3); padding: 2px 6px; border-radius: 3px;">O</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: rgba(255, 255, 255, 0.5);">Balance View:</span>
+                                <span style="background: rgba(128, 128, 128, 0.3); padding: 2px 6px; border-radius: 3px;">B</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Header Section -->
+                    <div style="padding: 12px; border-bottom: 1px solid rgba(128, 128, 128, 0.2);">
+                        <div style="font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px; letter-spacing: 0.5px;">HEADER</div>
+                        <div id="info-header" style="font-size: 11px; color: rgba(255, 255, 255, 0.9); line-height: 1.5;">
+                            ⟐mniExp 3D Journal Viewer
+                        </div>
+                    </div>
+                    
+                    <!-- Body Section -->
+                    <div style="padding: 12px; border-bottom: 1px solid rgba(128, 128, 128, 0.2);">
+                        <div style="font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px; letter-spacing: 0.5px;">BODY</div>
+                        <div id="info-body" style="font-size: 10px; color: rgba(255, 255, 255, 0.7); line-height: 1.6; max-height: 200px; overflow-y: auto;">
+                            Navigate your consciousness through MySpace. Use POS, ROT, and SCL controls to transform yourself or selected objects. When nothing is selected, controls affect your camera position. Select any grid panel to modify objects in the space.
+                        </div>
+                    </div>
+                    
+                    <!-- Footer Section -->
+                    <div style="padding: 12px;">
+                        <div style="font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px; letter-spacing: 0.5px;">FOOTER</div>
+                        <div id="info-footer" style="font-size: 9px; color: rgba(255, 255, 255, 0.5); font-style: italic;">
+                            Current Mode: <span id="info-current-mode" style="color: rgba(255, 255, 255, 0.8); font-weight: 600;">Navigation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Resize Handle -->
+        <div id="inspector-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
+    </div>
+
+    <!-- MySpace Control Panel -->
+    <div id="myspace-panel" class="minimized">
+        <div class="panel-header" id="myspace-panel-header">
+            <span class="panel-title">⟐ MYSPACE</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="myspace-minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="myspace-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content hidden" id="myspace-panel-content" style="padding: 16px;">
+            
+            <!-- Summon / DeSummon -->
+            <div style="margin-bottom: 20px;">
+                <button id="summon-toggle-btn" class="myspace-control-btn active" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    ✓ SUMMONED
+                </button>
+            </div>
+            
+            <!-- MyZone Toggle -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">MyZone</div>
+                <button id="myzone-toggle-btn" class="myspace-control-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    LOCK TO VIEW
+                </button>
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-top: 6px;">Sticks MySpace to camera view</div>
+            </div>
+            
+            <!-- Rotation Controls -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Rotate Grid View</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <div></div>
+                    <button id="rotate-up-btn" class="myspace-control-btn" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-size: 16px; transition: all 0.3s;">↑</button>
+                    <div></div>
+                    
+                    <button id="rotate-left-btn" class="myspace-control-btn" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-size: 16px; transition: all 0.3s;">←</button>
+                    <button id="center-sphere-btn" class="myspace-control-btn" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-size: 20px; transition: all 0.3s;">⟐</button>
+                    <button id="rotate-right-btn" class="myspace-control-btn" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-size: 16px; transition: all 0.3s;">→</button>
+                    
+                    <div></div>
+                    <button id="rotate-down-btn" class="myspace-control-btn" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-size: 16px; transition: all 0.3s;">↓</button>
+                    <div></div>
+                </div>
+            </div>
+            
+            <!-- Reset MySpace -->
+            <div style="margin-bottom: 20px;">
+                <button id="reset-myspace-btn" class="myspace-control-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                    ⟲ RESET POSITION
+                </button>
+            </div>
+            
+            <!-- Wallpaper Control -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Change Wallpaper</div>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <button id="wallpaper-image-btn" class="myspace-control-btn active" style="flex: 1; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600; transition: all 0.3s;">
+                        🖼️ IMAGE
+                    </button>
+                    <button id="wallpaper-video-btn" class="myspace-control-btn" style="flex: 1; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600; transition: all 0.3s;">
+                        🎥 VIDEO
+                    </button>
+                    <button id="wallpaper-default-btn" class="myspace-control-btn" style="flex: 1; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600; transition: all 0.3s;">
+                        🎨 DEFAULT
+                    </button>
+                </div>
+                <input type="file" id="wallpaper-upload" accept="image/*,video/*" style="display: none;">
+                <button id="wallpaper-upload-trigger" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    📁 UPLOAD FILE
+                </button>
+                <div id="wallpaper-preview" style="margin-top: 8px; font-size: 10px; color: rgba(255, 255, 255, 0.6);">
+                    Current: Default Gradient
+                </div>
+            </div>
+            
+            <!-- Divider -->
+            <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
+            
+            <!-- Sphere Rotation Controls -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Sphere Auto-Rotation</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; background: rgba(128, 128, 128, 0.2); border-radius: 6px; transition: all 0.3s;">
+                        <input type="checkbox" id="sphere-rotate-x" style="cursor: pointer; width: 18px; height: 18px;">
+                        <span style="font-size: 12px; color: rgba(255, 255, 255, 0.9);">Rotate on X-axis</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; background: rgba(128, 128, 128, 0.2); border-radius: 6px; transition: all 0.3s;">
+                        <input type="checkbox" id="sphere-rotate-y" style="cursor: pointer; width: 18px; height: 18px;">
+                        <span style="font-size: 12px; color: rgba(255, 255, 255, 0.9);">Rotate on Y-axis</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; background: rgba(128, 128, 128, 0.2); border-radius: 6px; transition: all 0.3s;">
+                        <input type="checkbox" id="sphere-rotate-z" style="cursor: pointer; width: 18px; height: 18px;">
+                        <span style="font-size: 12px; color: rgba(255, 255, 255, 0.9);">Rotate on Z-axis</span>
+                    </label>
+                </div>
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-top: 6px;">Enable continuous rotation on selected axes</div>
+            </div>
+            
+            <!-- Divider -->
+            <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
+            
+            <!-- Grid Configuration -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Type</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                    <button class="myspace-grid-btn active" data-grid-type="spherical" style="padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600; transition: all 0.3s;">
+                        🌐 SPHERICAL
+                    </button>
+                    <button class="myspace-grid-btn" data-grid-type="planar" style="padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600; transition: all 0.3s;">
+                        📐 PLANAR
+                    </button>
+                    <button class="myspace-grid-btn" data-grid-type="helix" style="padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600; transition: all 0.3s;">
+                        🌀 HELIX
+                    </button>
+                    <button class="myspace-grid-btn" data-grid-type="cube" style="padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600; transition: all 0.3s;">
+                        ⬛ CUBE
+                    </button>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Size</div>
+                <input type="range" id="grid-size-slider" min="5" max="25" value="15" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>Small (5)</span>
+                    <span id="grid-size-value">15</span>
+                    <span>Large (25)</span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Spacing</div>
+                <input type="range" id="grid-spacing-slider" min="1" max="5" value="2" step="0.5" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>Tight (1)</span>
+                    <span id="grid-spacing-value">2</span>
+                    <span>Wide (5)</span>
+                </div>
+            </div>
+            
+            <button id="apply-grid-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.4); border: 1px solid rgba(128, 128, 128, 0.6); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+                ✓ APPLY CHANGES
+            </button>
+        </div>
+        <!-- Resize Handle -->
+        <div id="myspace-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
+    </div>
+
+    <!-- Help Panel -->
+    <div id="help-panel" class="minimized" style="position: fixed; right: 20px; top: 120px;">
+        <div class="panel-header" id="help-panel-header">
+            <span class="panel-title">⟐?-Help</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="help-dock-btn" title="Auto Dock">⚓</button>
+                <button class="panel-btn" id="help-minimize-btn">□</button>
+                <button class="panel-btn close-btn" id="help-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content hidden" id="help-panel-content" style="padding: 12px; max-width: 280px;">
+            <div style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.9); margin-bottom: 12px;">KEYBOARD SHORTCUTS</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.6; color: rgba(255, 255, 255, 0.8);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>Movement</span>
+                    <span style="color: rgba(255, 255, 255, 0.5);">WASD</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>Up/Down</span>
+                    <span style="color: rgba(255, 255, 255, 0.5);">R/F</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>Mouse Look</span>
+                    <span style="color: rgba(255, 255, 255, 0.5);">Hold C</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>Reset Camera</span>
+                    <span style="color: rgba(255, 255, 255, 0.5);">O</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>OmniSense Mode</span>
+                    <span style="color: rgba(255, 255, 255, 0.5);">L</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>Toggle Docks</span>
+                    <span style="color: rgba(255, 255, 255, 0.5);">Z</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Cube Face Control Panel -->
+    <div id="cube-face-panel" class="panel" style="display: none; position: fixed; left: 100px; top: 120px; width: 380px; max-height: 600px; overflow-y: auto; background: rgba(25, 25, 30, 0.95); backdrop-filter: blur(20px); border: 2px solid rgba(0, 102, 255, 0.5); border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 102, 255, 0.3); z-index: 1050;">
+        <div class="panel-header" id="cube-face-panel-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0, 102, 255, 0.15); border-bottom: 1px solid rgba(0, 102, 255, 0.3); cursor: move;">
+            <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.5px; color: #fff;">⟐ <span id="cube-face-title">CUBE FACE</span></span>
+            <div style="display: flex; gap: 8px;">
+                <button class="panel-btn" id="cube-face-dock-btn" title="Auto Dock">⚓</button>
+                <button class="panel-btn" id="cube-face-minimize-btn">□</button>
+                <button class="panel-btn close-btn" id="cube-face-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content" id="cube-face-panel-content" style="padding: 16px;">
+            
+            <!-- Cube Rotation Control -->
+            <div style="margin-bottom: 20px; padding: 12px; background: rgba(0, 102, 255, 0.1); border: 1px solid rgba(0, 102, 255, 0.3); border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Cube Rotation</span>
+                    <button id="cube-rotation-toggle" class="active" style="padding: 6px 12px; background: rgba(0, 255, 0, 0.3); border: 1px solid rgba(0, 255, 0, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">✓ ROTATING</button>
+                </div>
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.6);">
+                    Click to pause/resume cube rotation
+                </div>
+            </div>
+            
+            <!-- Face-Specific Content Container -->
+            <div id="cube-face-content">
+                <!-- Content will be dynamically loaded based on clicked face -->
+            </div>
+            
+        </div>
+        <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize;"></div>
+    </div>
+
+    <!-- Object Data View Panel -->
+    <div id="view-panel" style="display: none; position: fixed; left: 360px; top: 135px; width: 400px; max-height: calc(100vh - 400px); overflow-y: auto; background: rgba(25, 25, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); color: #fff; z-index: 1000;">
+        <div id="view-panel-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(128, 128, 128, 0.15); border-bottom: 1px solid rgba(128, 128, 128, 0.3); cursor: move; user-select: none; border-top-left-radius: 16px; border-top-right-radius: 16px;">
+            <span style="font-size: 14px; font-weight: 600; letter-spacing: 0.5px;">OBJECT DATA VIEW</span>
+            <button id="view-panel-close" style="width: 24px; height: 24px; border-radius: 50%; background: rgba(255, 0, 0, 0.2); border: 1px solid rgba(255, 0, 0, 0.5); color: #fff; cursor: pointer; font-size: 18px; line-height: 1;">×</button>
+        </div>
+        
+        <div style="padding: 16px;">
+        <!-- Header -->
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">HEADER</div>
+                <button class="copy-btn" data-copy="header" style="padding: 4px 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">📋 COPY</button>
+            </div>
+            <div id="view-header" style="padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 8px; font-family: 'Orbitron', sans-serif; font-size: 13px; word-wrap: break-word; min-height: 40px;">
+                —
+            </div>
+        </div>
+        
+        <!-- Body -->
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">BODY</div>
+                <button class="copy-btn" data-copy="body" style="padding: 4px 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">📋 COPY</button>
+            </div>
+            <div id="view-body" style="padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 8px; font-family: 'Orbitron', sans-serif; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; min-height: 120px; max-height: 300px; overflow-y: auto;">
+                —
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600;">FOOTER</div>
+                <button class="copy-btn" data-copy="footer" style="padding: 4px 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">📋 COPY</button>
+            </div>
+            <div id="view-footer" style="padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 8px; font-family: 'Orbitron', sans-serif; font-size: 13px; word-wrap: break-word; min-height: 40px;">
+                —
+            </div>
+        </div>
+        </div>
+        
+        <!-- Resize Handle -->
+        <div id="view-panel-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
+    </div>
+
+    <!-- MySpace Grid Panel -->
+    <div id="myspace-grid-panel" class="side-menu" style="display: none; right: 120px; top: 80px; width: 350px; max-height: 600px; overflow-y: auto;">
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span class="panel-title" style="font-size: 18px; font-weight: 700;">⟐-• MYSPACE GRID</span>
+            <button class="panel-btn close-btn" id="myspace-grid-close" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">×</button>
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+            <div style="font-weight: 600; margin-bottom: 15px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Type</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <button class="myspace-grid-btn active" data-grid-type="spherical" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    🌐 SPHERICAL
+                </button>
+                <button class="myspace-grid-btn" data-grid-type="planar" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    📐 PLANAR WALLS
+                </button>
+                <button class="myspace-grid-btn" data-grid-type="helix" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    🌀 HELIX
+                </button>
+                <button class="myspace-grid-btn" data-grid-type="cube" style="padding: 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600; transition: all 0.3s;">
+                    ⬛ CUBE
+                </button>
+            </div>
+        </div>
+        
+        <!-- Grid Settings -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Size</div>
+            <input type="range" id="grid-size-slider" min="5" max="25" value="15" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.7);">
+                <span>Small (5)</span>
+                <span id="grid-size-value">15</span>
+                <span>Large (25)</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Grid Spacing</div>
+            <input type="range" id="grid-spacing-slider" min="1" max="5" value="2" step="0.5" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.7);">
+                <span>Tight (1)</span>
+                <span id="grid-spacing-value">2</span>
+                <span>Wide (5)</span>
+            </div>
+        </div>
+        
+        <button id="apply-grid-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.4); border: 1px solid rgba(128, 128, 128, 0.6); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; transition: all 0.3s;">
+            ✓ APPLY CHANGES
+        </button>
+    </div>
+
+    <!-- OmniSense Controls Panel -->
+    <div id="omnisense-panel" class="panel minimized" style="display: none; position: fixed; left: 20px; bottom: 20px; width: 500px; height: 60px; background: rgba(25, 25, 30, 0.95); backdrop-filter: blur(20px); border: 2px solid rgba(0, 102, 255, 0.5); border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 102, 255, 0.3); z-index: 1050; transition: all 0.3s; overflow: hidden;">
+        <div class="panel-header" id="omnisense-panel-header" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0, 102, 255, 0.15); border-bottom: 1px solid rgba(0, 102, 255, 0.3); cursor: move;">
+            <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: #fff;">⟐ OMNISENSE</span>
+            <div style="display: flex; gap: 6px;">
+                <button class="panel-btn" id="omnisense-minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="omnisense-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content" id="omnisense-panel-content" style="padding: 12px; display: none;">
+            
+            <!-- Tools Header Area -->
+            <div style="background: rgba(0, 102, 255, 0.1); border: 1px solid rgba(0, 102, 255, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                
+                <!-- Camera Height Slider -->
+                <div style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Camera Height</span>
+                        <span id="omnisense-height-value" style="font-family: 'Courier New', monospace; font-size: 11px; color: rgba(255, 255, 255, 0.7);">200</span>
+                    </div>
+                    <input type="range" id="omnisense-height-slider" min="0" max="600" value="200" step="10" style="width: 100%;">
+                    <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(255, 255, 255, 0.5); margin-top: 4px;">
+                        <span>Close (0)</span>
+                        <span>Multiple Realities (600)</span>
+                    </div>
+                </div>
+                
+                <!-- Grid Opacity Slider -->
+                <div style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Grid Brightness</span>
+                        <span id="omnisense-grid-opacity-value" style="font-family: 'Courier New', monospace; font-size: 11px; color: rgba(255, 255, 255, 0.7);">60%</span>
+                    </div>
+                    <input type="range" id="omnisense-grid-opacity-slider" min="0" max="100" value="60" step="5" style="width: 100%;">
+                </div>
+                
+                <!-- Cube Rotation Speed -->
+                <div style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Cube Rotation Speed</span>
+                        <span id="omnisense-rotation-speed-value" style="font-family: 'Courier New', monospace; font-size: 11px; color: rgba(255, 255, 255, 0.7);">1.0</span>
+                    </div>
+                    <input type="range" id="omnisense-rotation-speed-slider" min="0" max="10" value="1" step="0.1" style="width: 100%;">
+                </div>
+                
+                <!-- Tool Buttons -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="omnisense-save-state" class="update-btn" style="flex: 1; padding: 8px; font-size: 10px;">💾 SAVE</button>
+                    <button id="omnisense-load-state" class="update-btn" style="flex: 1; padding: 8px; font-size: 10px;">📂 LOAD</button>
+                    <button id="omnisense-reset" class="update-btn" style="flex: 1; padding: 8px; font-size: 10px;">🔄 RESET</button>
+                </div>
+            </div>
+            
+            <!-- Grid Body Area -->
+            <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 102, 255, 0.3); border-radius: 8px; padding: 12px; min-height: 200px; max-height: 400px; overflow: auto;">
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 12px; text-align: center;">
+                    Grid Visualization Matching Space
+                </div>
+                
+                <!-- Grid Canvas -->
+                <canvas id="omnisense-grid-canvas" width="400" height="300" style="width: 100%; border: 1px solid rgba(0, 102, 255, 0.2); border-radius: 4px; background: rgba(0, 0, 0, 0.5);"></canvas>
+                
+                <!-- Grid Info -->
+                <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 10px;">
+                    <div style="background: rgba(0, 102, 255, 0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                        <div style="color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Grid Size</div>
+                        <div id="grid-info-size" style="color: rgba(255, 255, 255, 0.9); font-family: 'Courier New', monospace;">2500</div>
+                    </div>
+                    <div style="background: rgba(0, 102, 255, 0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                        <div style="color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Divisions</div>
+                        <div id="grid-info-divisions" style="color: rgba(255, 255, 255, 0.9); font-family: 'Courier New', monospace;">100</div>
+                    </div>
+                    <div style="background: rgba(0, 102, 255, 0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                        <div style="color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Focus</div>
+                        <div id="grid-info-focus" style="color: rgba(255, 255, 255, 0.9); font-family: 'Courier New', monospace;">0,0,0</div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize;"></div>
+    </div>
+
+    <!-- Mobile Movement Control -->
+    <div id="movement-control">
+        <div class="joystick-base">
+            <div class="joystick-stick" id="joystick-stick"></div>
+        </div>
+        <div class="control-buttons">
+            <!-- Column 1: Vertical Movement -->
+            <button class="control-btn vertical-btn" id="btn-up" title="Move Up (R)">↑</button>
+            <button class="control-btn vertical-btn" id="btn-down" title="Move Down (F)">↓</button>
+            <button class="control-btn vertical-btn" id="btn-center" title="Reset Camera (O)">⦿</button>
+            
+            <!-- Column 2: Transform Controls -->
+            <button class="control-btn" id="btn-pos" title="Position">POS</button>
+            <button class="control-btn" id="btn-rot" title="Rotation">ROT</button>
+            <button class="control-btn" id="btn-scale" title="Scale">SCL</button>
+            
+            <!-- Column 3: Hand Menus -->
+            <button class="control-btn" id="btn-lh" title="Left Hand">LH</button>
+            <button class="control-btn" id="btn-rh" title="Right Hand">RH</button>
+            <button class="control-btn" id="btn-ch" title="Conscious Hand">CH</button>
+            
+            <!-- Column 4: UI Toggles -->
+            <button class="control-btn" id="btn-docks" title="Docks">DO</button>
+            <button class="control-btn" id="btn-keyboard" title="Keyboard">KB</button>
+            <button class="control-btn" id="btn-action-grid" title="Action Grid">GKB</button>
+            
+            <!-- Column 5: Tray & Future Buttons -->
+            <button class="control-btn" id="btn-tray" title="Toggle Tray">TRAY</button>
+            <button class="control-btn" id="btn-chat" title="Toggle Chat">CHAT</button>
+            <button class="control-btn" id="btn-orbit" title="Orbit Controls">ORBT</button>
+            
+            <!-- Column 6: Additional Controls -->
+            <button class="control-btn" id="btn-nav" title="Toggle Navigation Bar">NAV</button>
+            <button class="control-btn" id="btn-rulers" title="Toggle Rulers">RUL</button>
+            <button class="control-btn" id="btn-left-menu" title="Toggle Left Menu">OPN</button>
+            <button class="control-btn" id="btn-sense" title="OmniSense Mode (L)">SENSE</button>
+            <button class="control-btn" id="btn-17" title="Future Button">?</button>
+        </div>
+    </div>
+
+    <!-- Right Hand Movement Control -->
+    <div id="rh-movement-control" style="display: none;">
+        <div class="joystick-base">
+            <div class="joystick-stick" id="rh-joystick-stick"></div>
+        </div>
+    </div>
+
+    <!-- Conscious Hand Movement Control -->
+    <div id="ch-movement-control" style="display: none;">
+        <div class="joystick-base">
+            <div class="joystick-stick" id="ch-joystick-stick"></div>
+        </div>
+    </div>
+
+    <!-- RH Tool Settings Panel (replaces movement pad) -->
+    <div id="rh-tool-settings" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 200px; background: rgba(25, 25, 30, 0.95); backdrop-filter: blur(30px); border: 2px solid rgba(128, 128, 128, 0.4); border-radius: 12px; padding: 15px; z-index: 1000;">
+        <div style="font-size: 12px; font-weight: 700; color: #fff; text-align: center; margin-bottom: 10px; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">TOOL SETTINGS</div>
+        <div id="rh-tool-settings-content" style="font-size: 11px; color: rgba(255, 255, 255, 0.8);">
+            No tool selected
+        </div>
+    </div>
+
+    <!-- Position Rulers -->
+    <div id="x-axis-ruler" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 300px; height: 30px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; align-items: center; justify-content: space-between; padding: 0 10px; font-family: 'Courier New', monospace; font-size: 10px; color: #fff; z-index: 900;">
+        <span style="color: rgba(255, 255, 255, 0.8);">-50</span>
+        <div style="flex: 1; height: 2px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3)); margin: 0 10px; position: relative; box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);">
+            <div id="x-marker" style="position: absolute; width: 3px; height: 10px; background: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.5); left: 50%; transform: translateX(-50%); top: -4px; border-radius: 2px;"></div>
+        </div>
+        <span style="color: rgba(255, 255, 255, 0.8);">+50</span>
+        <span style="margin-left: 10px; color: #fff; font-weight: 700; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">X</span>
+    </div>
+    
+    <div id="z-axis-ruler" style="display: none; position: fixed; right: 20px; top: 160px; width: 30px; height: 300px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 0; font-family: 'Courier New', monospace; font-size: 10px; color: #fff; z-index: 900;">
+        <span style="color: rgba(255, 255, 255, 0.8);">+50</span>
+        <div style="flex: 1; width: 2px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3)); margin: 10px 0; position: relative; box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);">
+            <div id="z-marker" style="position: absolute; height: 3px; width: 10px; background: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.5); top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 2px;"></div>
+        </div>
+        <span style="color: rgba(255, 255, 255, 0.8);">-50</span>
+        <div style="margin-top: 10px; color: #fff; font-weight: 700; writing-mode: vertical-rl; transform: rotate(180deg); text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">Z</div>
+    </div>
+    
+    <div id="y-axis-ruler" style="display: none; position: fixed; left: 20px; top: 160px; width: 30px; height: 300px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 0; font-family: 'Courier New', monospace; font-size: 10px; color: #fff; z-index: 900;">
+        <span style="color: rgba(255, 255, 255, 0.8);">+50</span>
+        <div style="flex: 1; width: 2px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3)); margin: 10px 0; position: relative; box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);">
+            <div id="y-marker" style="position: absolute; height: 3px; width: 10px; background: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.5); top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 2px;"></div>
+        </div>
+        <span style="color: rgba(255, 255, 255, 0.8);">-50</span>
+        <div style="margin-top: 10px; color: #fff; font-weight: 700; writing-mode: vertical-rl; transform: rotate(180deg); text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);">Y</div>
+    </div>
+
+    <!-- JSON Viewer Panel -->
+    <div id="json-viewer-panel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vw; max-width: 800px; height: 70vh; background: rgba(25, 25, 30, 0.98); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; z-index: 5000; backdrop-filter: blur(20px); box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 80px rgba(255, 255, 255, 0.2); resize: both; overflow: hidden; min-width: 400px; min-height: 300px;">
+        <!-- Header -->
+        <div id="json-viewer-header" style="padding: 16px; border-bottom: 1px solid rgba(128, 128, 128, 0.3); display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: move; user-select: none;">
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">📜 DATA VIEWER</div>
+            
+            <!-- Transparency Control -->
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1; max-width: 300px;">
+                <span style="font-size: 10px; color: rgba(255, 255, 255, 0.6); white-space: nowrap;">Opacity:</span>
+                <input type="range" id="json-viewer-opacity" min="0.3" max="1" step="0.1" value="0.98" style="flex: 1; height: 4px; background: rgba(128, 128, 128, 0.3); border-radius: 2px; outline: none;">
+                <span id="json-viewer-opacity-value" style="font-size: 10px; color: rgba(255, 255, 255, 0.6); min-width: 30px;">98%</span>
+            </div>
+            
+            <div style="display: flex; gap: 8px;">
+                <button id="toggle-3d-viewer" style="padding: 6px 12px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600;">3D VIEW</button>
+                <button id="minimize-json-viewer" style="width: 32px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;">−</button>
+                <button id="close-json-viewer" style="width: 32px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;">×</button>
+            </div>
+        </div>
+        
+        <!-- Scroll Controls -->
+        <div style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1;">
+            <button id="json-scroll-up" style="width: 40px; height: 40px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">▲</button>
+            <button id="json-scroll-down" style="width: 40px; height: 40px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">▼</button>
+        </div>
+        
+        <!-- Content Area -->
+        <div id="json-viewer-content" style="padding: 20px; height: calc(100% - 64px); overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; color: #fff; line-height: 1.6;">
+            <pre id="json-viewer-pre" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;"></pre>
+        </div>
+    </div>
+    
+    <!-- Minimized JSON Viewer Tab -->
+    <div id="json-viewer-minimized" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background: rgba(25, 25, 30, 0.95); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; cursor: pointer; backdrop-filter: blur(20px); z-index: 5000;">
+        <span style="font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 600; color: #fff;">📜 DATA VIEWER (minimized)</span>
+    </div>
+
+    <!-- 3D Panel Control Panel -->
+    <div id="panel-3d-controls" style="display: none; position: fixed; right: 20px; top: 50%; transform: translateY(-50%); width: 280px; background: rgba(25, 25, 30, 0.95); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; backdrop-filter: blur(20px); z-index: 4500; box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 80px rgba(255, 255, 255, 0.2);">
+        <!-- Header -->
+        <div id="panel-3d-header" style="padding: 12px; border-bottom: 1px solid rgba(128, 128, 128, 0.3); display: flex; justify-content: space-between; align-items: center; cursor: move; user-select: none;">
+            <span style="font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">⚙️ 3D PANEL CONTROLS</span>
+            <button id="close-3d-controls" style="width: 28px; height: 28px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;">×</button>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 16px; max-height: 70vh; overflow-y: auto;">
+            <!-- Position Controls -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">POSITION</div>
+                <div style="display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: center;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">X</span>
+                    <input type="range" id="panel-3d-pos-x" min="-15" max="15" step="0.5" value="0" style="width: 100%;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">Y</span>
+                    <input type="range" id="panel-3d-pos-y" min="-15" max="15" step="0.5" value="0" style="width: 100%;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">Z</span>
+                    <input type="range" id="panel-3d-pos-z" min="-15" max="15" step="0.5" value="0" style="width: 100%;">
+                </div>
+            </div>
+            
+            <!-- Rotation Controls -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">ROTATION</div>
+                <div style="display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: center;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">X</span>
+                    <input type="range" id="panel-3d-rot-x" min="0" max="360" step="1" value="0" style="width: 100%;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">Y</span>
+                    <input type="range" id="panel-3d-rot-y" min="0" max="360" step="1" value="0" style="width: 100%;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">Z</span>
+                    <input type="range" id="panel-3d-rot-z" min="0" max="360" step="1" value="0" style="width: 100%;">
+                </div>
+            </div>
+            
+            <!-- Scale Controls -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">SCALE</div>
+                <div style="display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: center;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">X</span>
+                    <input type="range" id="panel-3d-sca-x" min="0.5" max="3" step="0.1" value="1" style="width: 100%;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">Y</span>
+                    <input type="range" id="panel-3d-sca-y" min="0.5" max="3" step="0.1" value="2" style="width: 100%;">
+                    <span style="font-size: 9px; color: rgba(255, 255, 255, 0.7);">Z</span>
+                    <input type="range" id="panel-3d-sca-z" min="0.5" max="3" step="0.1" value="1" style="width: 100%;">
+                </div>
+            </div>
+            
+            <!-- Color Control -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">PANEL COLOR</div>
+                <input type="color" id="panel-3d-color" value="#191920" style="width: 100%; height: 40px; border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; background: rgba(0, 0, 0, 0.3); cursor: pointer;">
+            </div>
+            
+            <!-- Opacity Control -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">OPACITY</div>
+                <input type="range" id="panel-3d-opacity" min="0.1" max="1" step="0.1" value="0.95" style="width: 100%;">
+                <span id="panel-3d-opacity-value" style="font-size: 9px; color: rgba(255, 255, 255, 0.6);">95%</span>
+            </div>
+            
+            <!-- Put in Pocket Button -->
+            <button id="put-panel-in-pocket" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600;">
+                📦 PUT IN POCKET
+            </button>
+        </div>
+    </div>
+
+    <!-- 3D Panel Control Panel -->
+    <div id="panel-3d-controls" style="display: none; position: fixed; right: 20px; top: 50%; transform: translateY(-50%); width: 280px; background: rgba(25, 25, 30, 0.95); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; z-index: 5000; backdrop-filter: blur(20px); box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);">
+        <!-- Header (draggable) -->
+        <div id="panel-3d-header" style="padding: 12px 16px; border-bottom: 1px solid rgba(128, 128, 128, 0.3); display: flex; justify-content: space-between; align-items: center; cursor: move; user-select: none; background: rgba(128, 128, 128, 0.2);">
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);">🎛️ 3D PANEL CONTROLS</div>
+            <button id="close-3d-controls" style="width: 24px; height: 24px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; color: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;">×</button>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 16px; max-height: 600px; overflow-y: auto;">
+            <!-- Position Controls -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);">POSITION</div>
+                <div style="display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: center;">
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">X:</span>
+                    <input type="range" id="panel-3d-pos-x" min="-20" max="20" step="0.5" value="0" style="width: 100%;">
+                    
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">Y:</span>
+                    <input type="range" id="panel-3d-pos-y" min="-20" max="20" step="0.5" value="0" style="width: 100%;">
+                    
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">Z:</span>
+                    <input type="range" id="panel-3d-pos-z" min="-20" max="20" step="0.5" value="0" style="width: 100%;">
+                </div>
+            </div>
+            
+            <!-- Rotation Controls -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);">ROTATION</div>
+                <div style="display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: center;">
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">X:</span>
+                    <input type="range" id="panel-3d-rot-x" min="-3.14" max="3.14" step="0.1" value="0" style="width: 100%;">
+                    
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">Y:</span>
+                    <input type="range" id="panel-3d-rot-y" min="-3.14" max="3.14" step="0.1" value="0" style="width: 100%;">
+                    
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">Z:</span>
+                    <input type="range" id="panel-3d-rot-z" min="-3.14" max="3.14" step="0.1" value="0" style="width: 100%;">
+                </div>
+            </div>
+            
+            <!-- Scale Controls -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);">SCALE</div>
+                <div style="display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: center;">
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">X:</span>
+                    <input type="range" id="panel-3d-sca-x" min="0.1" max="3" step="0.1" value="1" style="width: 100%;">
+                    
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">Y:</span>
+                    <input type="range" id="panel-3d-sca-y" min="0.1" max="3" step="0.1" value="1" style="width: 100%;">
+                    
+                    <span style="font-size: 10px; color: rgba(255, 255, 255, 0.8);">Z:</span>
+                    <input type="range" id="panel-3d-sca-z" min="0.1" max="3" step="0.1" value="1" style="width: 100%;">
+                </div>
+            </div>
+            
+            <!-- Color Control -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);">PANEL COLOR</div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="color" id="panel-3d-color" value="#191919" style="width: 60px; height: 32px; border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 4px; cursor: pointer;">
+                    <span id="panel-3d-color-value" style="font-size: 10px; color: rgba(255, 255, 255, 0.8); font-family: 'Courier New', monospace;">#191919</span>
+                </div>
+            </div>
+            
+            <!-- Opacity Control -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);">OPACITY</div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="range" id="panel-3d-opacity" min="0.3" max="1" step="0.05" value="0.95" style="flex: 1;">
+                    <span id="panel-3d-opacity-value" style="font-size: 10px; color: rgba(255, 255, 255, 0.8); min-width: 35px;">95%</span>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button id="reset-3d-panel" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600;">🔄 RESET POSITION</button>
+                
+                <button id="save-to-pocket-3d" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600;">💼 SAVE TO POCKET</button>
+                
+                <button id="remove-3d-panel" style="width: 100%; padding: 10px; background: rgba(180, 80, 80, 0.3); border: 1px solid rgba(180, 80, 80, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 600;">🗑️ REMOVE PANEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Virtual Keyboard -->
+    <div id="virtual-keyboard"></div>
+
+    <!-- Transform Panel -->
+    <div id="transform-panel">
+        <div class="transform-header">
+            <span class="panel-title" id="transform-title">POSITION</span>
+            <button class="panel-btn close-btn" id="transform-close">×</button>
+        </div>
+        <div class="transform-content">
+            <div class="transform-row">
+                <div class="transform-label">X</div>
+                <div class="transform-inputs">
+                    <input type="number" class="transform-input" id="transform-x" value="0" step="0.1">
+                </div>
+            </div>
+            <div class="transform-row">
+                <div class="transform-label">Y</div>
+                <div class="transform-inputs">
+                    <input type="number" class="transform-input" id="transform-y" value="0" step="0.1">
+                </div>
+            </div>
+            <div class="transform-row">
+                <div class="transform-label">Z</div>
+                <div class="transform-inputs">
+                    <input type="number" class="transform-input" id="transform-z" value="0" step="0.1">
+                </div>
+            </div>
+            <div class="transform-row">
+                <div class="transform-label">Step Size</div>
+                <div class="step-control">
+                    <span class="step-label">Range:</span>
+                    <input type="number" class="step-input" id="step-size" value="1" min="-1000" max="1000">
+                </div>
+            </div>
+            <div class="transform-submit-container">
+                <button class="transform-submit-btn" id="transform-submit">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Button Grid (30 buttons) -->
+    <div id="action-grid" class="hidden">
+        <button class="action-btn" data-action="1">A1</button>
+        <button class="action-btn" data-action="2">A2</button>
+        <button class="action-btn" data-action="3">A3</button>
+        <button class="action-btn" data-action="4">A4</button>
+        <button class="action-btn" data-action="5">A5</button>
+        <button class="action-btn" data-action="6">A6</button>
+        <button class="action-btn" data-action="7">A7</button>
+        <button class="action-btn" data-action="8">A8</button>
+        <button class="action-btn" data-action="9">A9</button>
+        <button class="action-btn" data-action="10">A10</button>
+        <button class="action-btn" data-action="11">A11</button>
+        <button class="action-btn" data-action="12">A12</button>
+        <button class="action-btn" data-action="13">A13</button>
+        <button class="action-btn" data-action="14">A14</button>
+        <button class="action-btn" data-action="15">A15</button>
+        <button class="action-btn" data-action="16">A16</button>
+        <button class="action-btn" data-action="17">A17</button>
+        <button class="action-btn" data-action="18">A18</button>
+        <button class="action-btn" data-action="19">A19</button>
+        <button class="action-btn" data-action="20">A20</button>
+        <button class="action-btn" data-action="21">A21</button>
+        <button class="action-btn" data-action="22">A22</button>
+        <button class="action-btn" data-action="23">A23</button>
+        <button class="action-btn" data-action="24">A24</button>
+        <button class="action-btn" data-action="25">A25</button>
+        <button class="action-btn" data-action="26">A26</button>
+        <button class="action-btn" data-action="27">A27</button>
+        <button class="action-btn" data-action="28">A28</button>
+        <button class="action-btn" data-action="29">A29</button>
+        <button class="action-btn" data-action="30">A30</button>
+    </div>
+
+    <!-- THREE.js and GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    
+    <!-- Particles.js Library -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <!-- Main Application Script -->
+    <script src="script.js"></script>
+</body>
+</html>
