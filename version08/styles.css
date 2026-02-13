@@ -497,13 +497,6 @@
             grid-template-rows: repeat(3, 35px);
             gap: 6px;
             z-index: 1000;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s;
-        }
-        
-        .control-buttons.hidden {
-            transform: translateX(-250px);
-            opacity: 0;
-            pointer-events: none;
         }
 
         .control-btn {
@@ -1963,14 +1956,4 @@
         @keyframes rotateClockwise {
             from { transform: translate(-50%, -50%) rotate(0deg); }
             to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        @keyframes rotateCounterClockwise {
-            from { transform: translate(-50%, -50%) rotate(360deg); }
-            to { transform: translate(-50%, -50%) rotate(0deg); }
-        }
-
-        @keyframes rotateXAxis {
-            from { transform: translate(-50%, -50%) rotateX(0deg); }
-            to { transform: translate(-50%, -50%) rotateX(360deg); }
         }

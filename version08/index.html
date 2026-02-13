@@ -3,11 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Journal Viewer - MySpace</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>3D Journal Viewer - OmniSense Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+            from { transform: translate(-50%, -50%) rotate(360deg); }
+            to { transform: translate(-50%, -50%) rotate(0deg); }
+        }
+
+        @keyframes rotateXAxis {
+            from { transform: translate(-50%, -50%) rotateX(0deg); }
+            to { transform: translate(-50%, -50%) rotateX(360deg); }
+        }
+    </style>
+</head>
 <body>
     <div id="canvas-container"></div>
     
@@ -1327,8 +1336,8 @@
         </div>
     </div>
 
-    <!-- Inspector Panel (Hidden - merged into OmniKeys Panel) -->
-    <div id="inspector-panel" class="minimized" style="position: fixed; left: 20px; top: 120px; display: none;">
+    <!-- Inspector Panel -->
+    <div id="inspector-panel" class="minimized" style="position: fixed; left: 20px; top: 120px; display: block;">
         <div class="panel-header" id="panel-header">
             <span class="panel-title">⟐ INSPECTOR</span>
             <div class="panel-controls">
@@ -1678,185 +1687,6 @@
         <div id="myspace-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
     </div>
 
-    <!-- ⟐mniKeys Control Panel -->
-    <div id="omnikeys-panel" style="position: fixed; left: 20px; top: 120px; display: none;">
-        <div class="panel-header" id="omnikeys-panel-header">
-            <span class="panel-title">⟐MNIKEYS INSPECTOR</span>
-            <div class="panel-controls">
-                <button class="panel-btn" id="omnikeys-dock-btn" title="Auto Dock">⚓</button>
-                <button class="panel-btn" id="omnikeys-minimize-btn">_</button>
-                <button class="panel-btn close-btn" id="omnikeys-close-btn">×</button>
-            </div>
-        </div>
-        <div class="panel-content" id="omnikeys-panel-content" style="padding: 16px; max-height: calc(100vh - 200px); overflow-y: auto;">
-            
-            <!-- Selected Key Inspector -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">SELECTED KEY</div>
-                <div id="selected-key-name" style="font-size: 14px; font-weight: 700; color: #ffffff; margin-bottom: 15px; padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; border: 1px solid rgba(128, 128, 128, 0.3);">
-                    None
-                </div>
-                
-                <!-- Entity Field -->
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Surface Level Entity</label>
-                    <input type="text" id="key-entity" placeholder="Enter entity..." style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 12px; outline: none;">
-                </div>
-                
-                <!-- Function/Action Field -->
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Desired Function / Action</label>
-                    <textarea id="key-function" placeholder="Enter function or action..." style="width: 100%; min-height: 80px; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; outline: none; resize: vertical;"></textarea>
-                </div>
-                
-                <!-- Submit Button -->
-                <button id="key-submit-btn" style="width: 100%; padding: 10px; background: rgba(128, 128, 128, 0.4); border: 1px solid rgba(128, 128, 128, 0.6); border-radius: 6px; color: #fff; cursor: pointer; font-size: 11px; font-weight: 600; font-family: 'Orbitron', sans-serif;">
-                    APPLY TO KEY
-                </button>
-            </div>
-            
-            <!-- Divider -->
-            <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
-            
-            <!-- Position Controls -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">POSITION (Camera Relative)</div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>X-Axis</span>
-                        <span id="kb-pos-x-value">0.00</span>
-                    </label>
-                    <input type="range" id="kb-pos-x" min="-20" max="20" step="0.1" value="0" style="width: 100%;">
-                </div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Y-Axis</span>
-                        <span id="kb-pos-y-value">-1.50</span>
-                    </label>
-                    <input type="range" id="kb-pos-y" min="-10" max="10" step="0.1" value="-1.5" style="width: 100%;">
-                </div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Z-Axis (Depth)</span>
-                        <span id="kb-pos-z-value">-8.60</span>
-                    </label>
-                    <input type="range" id="kb-pos-z" min="-20" max="0" step="0.1" value="-8.6" style="width: 100%;">
-                </div>
-            </div>
-            
-            <!-- Divider -->
-            <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
-            
-            <!-- Rotation Controls -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">ROTATION</div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>= X-Axis (Tilt Up/Down)</span>
-                        <span id="kb-rot-x-value">0.90</span>
-                    </label>
-                    <input type="range" id="kb-rot-x" min="-1.57" max="1.57" step="0.01" value="0.9" style="width: 100%;">
-                </div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>[ ] Y-Axis (Spin Left/Right)</span>
-                        <span id="kb-rot-y-value">0.00</span>
-                    </label>
-                    <input type="range" id="kb-rot-y" min="-3.14" max="3.14" step="0.01" value="0" style="width: 100%;">
-                </div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>' Z-Axis (Roll)</span>
-                        <span id="kb-rot-z-value">0.00</span>
-                    </label>
-                    <input type="range" id="kb-rot-z" min="-3.14" max="3.14" step="0.01" value="0" style="width: 100%;">
-                </div>
-            </div>
-            
-            <!-- Divider -->
-            <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
-            
-            <!-- Scale Controls -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">SCALE</div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Uniform Scale</span>
-                        <span id="kb-scale-value">0.20</span>
-                    </label>
-                    <input type="range" id="kb-scale" min="0.1" max="3" step="0.1" value="0.2" style="width: 100%;">
-                </div>
-            </div>
-            
-            <!-- Divider -->
-            <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
-            
-            <!-- Spacing Controls -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">KEY SPACING</div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Horizontal Gap</span>
-                        <span id="kb-spacing-value">2.60</span>
-                    </label>
-                    <input type="range" id="kb-spacing" min="1" max="10" step="0.1" value="2.6" style="width: 100%;">
-                </div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Vertical Gap (Rows)</span>
-                        <span id="kb-row-spacing-value">3.20</span>
-                    </label>
-                    <input type="range" id="kb-row-spacing" min="1" max="10" step="0.1" value="3.2" style="width: 100%;">
-                </div>
-            </div>
-            
-            <!-- Divider -->
-            <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
-            
-            <!-- Quick Actions -->
-            <div style="margin-bottom: 10px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">QUICK ACTIONS</div>
-                
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button id="kb-reset-position" style="flex: 1; min-width: 80px; padding: 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600;">RESET POS</button>
-                    <button id="kb-reset-rotation" style="flex: 1; min-width: 80px; padding: 8px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 6px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600;">RESET ROT</button>
-                    <button id="kb-reset-all" style="flex: 1 1 100%; padding: 8px; background: rgba(128, 128, 128, 0.4); border: 1px solid rgba(128, 128, 128, 0.6); border-radius: 6px; color: #fff; cursor: pointer; font-size: 10px; font-weight: 600;">RESET ALL</button>
-                </div>
-            </div>
-            
-            <!-- Divider -->
-            <div style="height: 1px; background: rgba(128, 128, 128, 0.2); margin: 20px 0;"></div>
-            
-            <!-- Still Mode -->
-            <div style="margin-bottom: 10px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">KEYBOARD MODE</div>
-                
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; background: rgba(0, 0, 0, 0.2); border-radius: 6px; border: 1px solid rgba(128, 128, 128, 0.3);">
-                    <input type="checkbox" id="kb-still-mode" style="width: 16px; height: 16px; cursor: pointer;">
-                    <span style="font-size: 11px; color: rgba(255, 255, 255, 0.8);">Still Mode (Typable)</span>
-                </label>
-                
-                <div style="font-size: 9px; color: rgba(255, 255, 255, 0.4); margin-top: 6px; padding-left: 8px;">
-                    ✓ Keys jump when typed<br>
-                    ✓ Movement controls disabled<br>
-                    ✓ Auto-disconnect on text fields
-                </div>
-            </div>
-            
-        </div>
-        <!-- Resize Handle -->
-        <div id="omnikeys-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
-    </div>
-
     <!-- Help Panel -->
     <div id="help-panel" class="minimized" style="position: fixed; right: 20px; top: 120px;">
         <div class="panel-header" id="help-panel-header">
@@ -2115,11 +1945,6 @@
     <div id="movement-control">
         <div class="joystick-base">
             <div class="joystick-stick" id="joystick-stick"></div>
-            <!-- Directional buttons for mobile -->
-            <button class="joystick-dir-btn" id="joy-btn-north" style="position: absolute; top: 5px; left: 50%; transform: translateX(-50%); width: 35px; height: 35px; background: rgba(128, 128, 128, 0.5); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">↑</button>
-            <button class="joystick-dir-btn" id="joy-btn-south" style="position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 35px; height: 35px; background: rgba(128, 128, 128, 0.5); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">↓</button>
-            <button class="joystick-dir-btn" id="joy-btn-west" style="position: absolute; left: 5px; top: 50%; transform: translateY(-50%); width: 35px; height: 35px; background: rgba(128, 128, 128, 0.5); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">←</button>
-            <button class="joystick-dir-btn" id="joy-btn-east" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 35px; height: 35px; background: rgba(128, 128, 128, 0.5); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">→</button>
         </div>
         <div class="control-buttons">
             <!-- Column 1: Vertical Movement -->
@@ -2150,9 +1975,9 @@
             <!-- Column 6: Additional Controls -->
             <button class="control-btn" id="btn-nav" title="Toggle Navigation Bar">NAV</button>
             <button class="control-btn" id="btn-rulers" title="Toggle Rulers">RUL</button>
-            <button class="control-btn" id="btn-keys" title="⟐mniKeyboard (N)">KEYS</button>
+            <button class="control-btn" id="btn-left-menu" title="Toggle Left Menu">OPN</button>
             <button class="control-btn" id="btn-sense" title="OmniSense Mode (L)">SENSE</button>
-            <button class="control-btn" id="btn-menu" title="Toggle Menu">☰</button>
+            <button class="control-btn" id="btn-17" title="Future Button">?</button>
         </div>
     </div>
 
@@ -2475,15 +2300,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-
     <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- GSAP for smooth animations -->
+    
+    <!-- GSAP Animation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    
     <!-- Particles.js Library -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <!-- Main Script -->
+    
+    <!-- Main Application Script -->
     <script src="script.js"></script>
-
 </body>
 </html>
