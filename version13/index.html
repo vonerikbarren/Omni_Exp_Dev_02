@@ -606,6 +606,204 @@
         </div>
     </div>
 
+    <!-- Particle Behavior Panel -->
+    <div id="particle-behavior-panel" class="minimized" style="display: none;">
+        <div class="panel-header" id="particle-behavior-header">
+            <span class="panel-title">⟐ PARTICLE BEHAVIOR</span>
+            <div class="panel-controls">
+                <button class="panel-btn" id="particle-dock-btn" title="Auto Dock">⚓</button>
+                <button class="panel-btn" id="particle-minimize-btn">_</button>
+                <button class="panel-btn close-btn" id="particle-close-btn">×</button>
+            </div>
+        </div>
+        <div class="panel-content hidden" id="particle-panel-content" style="padding: 16px;">
+        
+        <div class="behavior-section" style="margin-bottom: 25px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Behavior Mode</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px;">
+                <button class="behavior-mode-btn active" data-mode="calm" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">CALM</button>
+                <button class="behavior-mode-btn" data-mode="forward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">FORWARD</button>
+                <button class="behavior-mode-btn" data-mode="backward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">BACKWARD</button>
+                <button class="behavior-mode-btn" data-mode="upward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">UPWARD</button>
+                <button class="behavior-mode-btn" data-mode="downward" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">DOWNWARD</button>
+                <button class="behavior-mode-btn" data-mode="connected" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">CONNECTED</button>
+                <button class="behavior-mode-btn" data-mode="glitch" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 600;">GLITCH</button>
+                <button class="behavior-mode-btn" data-mode="constellation" style="padding: 10px; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 600;">CONSTELLATION</button>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="forward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Forward Flow Speed</div>
+            <input type="range" id="forward-speed-slider" min="1" max="100" value="20" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="forward-speed-value">20</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="backward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Backward Flow Speed</div>
+            <input type="range" id="backward-speed-slider" min="1" max="100" value="20" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="backward-speed-value">20</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="upward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Upward Flow Speed</div>
+            <input type="range" id="upward-speed-slider" min="1" max="100" value="20" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="upward-speed-value">20</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="downward-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Downward Flow Speed</div>
+            <input type="range" id="downward-speed-slider" min="1" max="100" value="20" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Slow</span>
+                <span id="downward-speed-value">20</span>
+                <span>Fast</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="connected-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Connection Frequency</div>
+            <input type="range" id="connected-frequency-slider" min="1" max="100" value="50" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Sparse</span>
+                <span id="connected-frequency-value">50</span>
+                <span>Dense</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="glitch-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Glitch Intensity</div>
+            <input type="range" id="glitch-intensity-slider" min="1" max="100" value="50" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Subtle</span>
+                <span id="glitch-intensity-value">50</span>
+                <span>Extreme</span>
+            </div>
+        </div>
+        
+        <div class="behavior-controls" id="constellation-controls" style="display: none; margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 14px;">Connection Distance</div>
+            <input type="range" id="constellation-distance-slider" min="1" max="100" value="30" style="width: 100%; cursor: pointer; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span>Close</span>
+                <span id="constellation-distance-value">30</span>
+                <span>Far</span>
+            </div>
+        </div>
+        
+        <!-- Divider -->
+        <div style="margin: 30px 0; height: 1px; background: rgba(128, 128, 128, 0.3);"></div>
+        
+        <!-- General Particle Options -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-weight: 600; margin-bottom: 15px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">General Options</div>
+            
+            <!-- Particle Count -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Particle Count</div>
+                <input type="range" id="particle-count-slider" min="100" max="10000" value="5000" step="100" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>100</span>
+                    <span id="particle-count-value">5000</span>
+                    <span>10000</span>
+                </div>
+            </div>
+            
+            <!-- Particle Size -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Particle Size</div>
+                <input type="range" id="particle-size-slider" min="0.1" max="5" value="1" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0.1</span>
+                    <span id="particle-size-value">1.0</span>
+                    <span>5.0</span>
+                </div>
+            </div>
+            
+            <!-- Particle Color -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Particle Color</div>
+                <input type="color" id="particle-color-picker" value="#ffffff" style="width: 100%; height: 40px; cursor: pointer; border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 8px; background: transparent;">
+            </div>
+            
+            <!-- X-Axis Movement -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">X-Axis Range</div>
+                <input type="range" id="particle-x-range" min="0" max="200" value="100" step="10" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="particle-x-range-value">100</span>
+                    <span>200</span>
+                </div>
+            </div>
+            
+            <!-- Y-Axis Movement -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Y-Axis Range</div>
+                <input type="range" id="particle-y-range" min="0" max="200" value="100" step="10" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="particle-y-range-value">100</span>
+                    <span>200</span>
+                </div>
+            </div>
+            
+            <!-- Z-Axis Movement -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Z-Axis Range</div>
+                <input type="range" id="particle-z-range" min="0" max="200" value="100" step="10" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="particle-z-range-value">100</span>
+                    <span>200</span>
+                </div>
+            </div>
+            
+            <!-- Particle Speed -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Movement Speed</div>
+                <input type="range" id="particle-speed-slider" min="0" max="10" value="1" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0</span>
+                    <span id="particle-speed-value">1.0</span>
+                    <span>10</span>
+                </div>
+            </div>
+            
+            <!-- Particle Opacity -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">Particle Opacity</div>
+                <input type="range" id="particle-opacity-slider" min="0" max="1" value="0.8" step="0.1" style="width: 100%; cursor: pointer; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.7);">
+                    <span>0%</span>
+                    <span id="particle-opacity-value">80%</span>
+                    <span>100%</span>
+                </div>
+            </div>
+            
+            <!-- Update Button -->
+            <div style="margin-top: 30px;">
+                <button id="particle-update-btn" class="myspace-control-btn" style="width: 100%; padding: 14px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 8px; color: #fff; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);">
+                    ⟐ UPDATE PARTICLES
+                </button>
+            </div>
+        </div>
+        
+        </div>
+        <!-- Resize Handle -->
+        <div class="resize-handle"></div>
+    </div>
 
     <!-- Orbit Controls Panel -->
     <div id="orbit-controls-panel" class="minimized" style="display: none;">
@@ -1699,411 +1897,6 @@
             </div>
         </div>
     </div>
-    </div>
-
-    <!-- OmniConduit Navigation Map Panel -->
-    <div id="omnimap-panel" class="minimized" style="position: fixed; right: 20px; top: 450px;">
-        <div class="panel-header" id="omnimap-panel-header">
-            <span class="panel-title">⟐ NODE MAP</span>
-            <div class="panel-controls">
-                <button class="panel-btn" id="omnimap-dock-btn" title="Auto Dock">⚓</button>
-                <button class="panel-btn" id="omnimap-minimize-btn">_</button>
-                <button class="panel-btn close-btn" id="omnimap-close-btn">×</button>
-            </div>
-        </div>
-        <div class="panel-content hidden" id="omnimap-panel-content" style="padding: 16px;">
-            
-            <!-- Current Location -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px;">CURRENT NODE</div>
-                <div id="current-node-display" style="font-size: 14px; font-weight: 700; color: #00ff00; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 255, 0, 0.5); border-radius: 6px; text-align: center;">
-                    MySpace Landing Zone
-                </div>
-            </div>
-            
-            <!-- 3D Network Map -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px;">REALITY NODE NETWORK</div>
-                
-                <!-- Visual Map Grid -->
-                <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 8px; padding: 15px; font-family: monospace; font-size: 9px; line-height: 1.8;">
-                    
-                    <!-- Top Row (Diagonal Upper) -->
-                    <div style="display: flex; justify-content: space-around; margin-bottom: 10px;">
-                        <button class="node-btn" data-node="topDiagonalLeft" style="width: 50px; height: 35px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 6px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            ▲L<br>TOP
-                        </button>
-                        <div style="width: 50px;"></div>
-                        <button class="node-btn" data-node="topDiagonalRight" style="width: 50px; height: 35px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 6px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            ▲R<br>TOP
-                        </button>
-                    </div>
-                    
-                    <!-- Upper Middle Row (Front row) -->
-                    <div style="display: flex; justify-content: space-around; margin-bottom: 10px;">
-                        <button class="node-btn" data-node="frontLeftSpace" style="width: 45px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            F-L
-                        </button>
-                        <button class="node-btn" data-node="frontSpace" style="width: 45px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            FWD
-                        </button>
-                        <button class="node-btn" data-node="frontRightSpace" style="width: 45px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            F-R
-                        </button>
-                    </div>
-                    
-                    <!-- Center Row (MySpace row) -->
-                    <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 10px;">
-                        <button class="node-btn" data-node="leftSpace" style="width: 45px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            LEFT
-                        </button>
-                        <button class="node-btn active-node" data-node="mySpace" style="width: 60px; height: 45px; background: rgba(0, 255, 0, 0.3); border: 2px solid rgba(0, 255, 0, 0.8); border-radius: 8px; color: #00ff00; cursor: pointer; font-size: 9px; font-weight: 700; font-family: 'Orbitron', sans-serif; box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);">
-                            ⟐<br>MY
-                        </button>
-                        <button class="node-btn" data-node="rightSpace" style="width: 45px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            RGT
-                        </button>
-                    </div>
-                    
-                    <!-- Lower Middle Row (Back row) -->
-                    <div style="display: flex; justify-content: space-around; margin-bottom: 10px;">
-                        <button class="node-btn" data-node="rearLeftSpace" style="width: 45px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            R-L
-                        </button>
-                        <button class="node-btn" data-node="backSpace" style="width: 45px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            BACK
-                        </button>
-                        <button class="node-btn" data-node="rearRightSpace" style="width: 45px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            R-R
-                        </button>
-                    </div>
-                    
-                    <!-- Rear Layer -->
-                    <div style="display: flex; justify-content: center; margin-bottom: 10px;">
-                        <button class="node-btn" data-node="behindSpace" style="width: 50px; height: 32px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            REAR
-                        </button>
-                    </div>
-                    
-                    <!-- Bottom Row (Diagonal Lower) -->
-                    <div style="display: flex; justify-content: space-around;">
-                        <button class="node-btn" data-node="bottomDiagonalLeft" style="width: 50px; height: 35px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 6px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            ▼L<br>BOT
-                        </button>
-                        <div style="width: 50px;"></div>
-                        <button class="node-btn" data-node="bottomDiagonalRight" style="width: 50px; height: 35px; background: rgba(128, 128, 128, 0.3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 6px; color: #fff; cursor: pointer; font-size: 7px; font-family: 'Orbitron', sans-serif;">
-                            ▼R<br>BOT
-                        </button>
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <!-- Connection Info -->
-            <div style="margin-bottom: 15px;">
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px;">ACTIVE CONDUITS</div>
-                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px;">
-                    <div style="margin-bottom: 4px;">✓ 13 OmniConduits Active</div>
-                    <div style="margin-bottom: 4px;">⟐ All Paths Open</div>
-                    <div>⇄ Two-Way Traversal</div>
-                </div>
-            </div>
-            
-            <!-- Legend -->
-            <div>
-                <div class="info-label" style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px;">LEGEND</div>
-                <div style="font-size: 9px; color: rgba(255, 255, 255, 0.6); line-height: 1.6;">
-                    <div>🟢 = Current Node</div>
-                    <div>⚪ = Available Node</div>
-                    <div>⟐ = Click to Traverse</div>
-                </div>
-            </div>
-            
-        </div>
-        <!-- Resize Handle -->
-        <div id="omnimap-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
-    </div>
-
-    <!-- Particle.js Control Panel -->
-    <div id="particle-panel" class="minimized" style="position: fixed; right: 20px; top: 280px;">
-        <div class="panel-header" id="particle-panel-header">
-            <span class="panel-title">Particles.js</span>
-            <div class="panel-controls">
-                <button class="panel-btn" id="particle-dock-btn" title="Auto Dock">⚓</button>
-                <button class="panel-btn" id="particle-minimize-btn">_</button>
-                <button class="panel-btn close-btn" id="particle-close-btn">×</button>
-            </div>
-        </div>
-        <div class="panel-content hidden" id="particle-panel-content" style="padding: 16px; max-height: calc(100vh - 400px); overflow-y: auto;">
-            
-            <!-- PARTICLES SECTION -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 12px; color: rgba(255, 255, 255, 0.8); margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid rgba(128, 128, 128, 0.3); padding-bottom: 8px;">PARTICLES</div>
-                
-                <!-- Number -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Number</span>
-                        <span id="p-number-value">80</span>
-                    </label>
-                    <input type="range" id="p-number" min="10" max="300" step="10" value="80" style="width: 100%;">
-                </div>
-                
-                <!-- Color -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Color</label>
-                    <input type="color" id="p-color" value="#ffffff" style="width: 100%; height: 35px; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; background: rgba(0, 0, 0, 0.3); cursor: pointer;">
-                </div>
-                
-                <!-- Shape -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Shape</label>
-                    <select id="p-shape" style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer;">
-                        <option value="circle">Circle</option>
-                        <option value="edge">Edge</option>
-                        <option value="triangle">Triangle</option>
-                        <option value="polygon">Polygon</option>
-                        <option value="star">Star</option>
-                        <option value="image">Image</option>
-                    </select>
-                </div>
-                
-                <!-- Size -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Size</span>
-                        <span id="p-size-value">3</span>
-                    </label>
-                    <input type="range" id="p-size" min="0.5" max="20" step="0.5" value="3" style="width: 100%;">
-                </div>
-                
-                <!-- Size Random -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-size-random" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Random Size</span>
-                    </label>
-                </div>
-                
-                <!-- Size Animation -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-size-anim" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Animate Size</span>
-                    </label>
-                </div>
-                
-                <!-- Size Animation Speed -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Size Anim Speed</span>
-                        <span id="p-size-anim-speed-value">3</span>
-                    </label>
-                    <input type="range" id="p-size-anim-speed" min="0" max="10" step="0.5" value="3" style="width: 100%;">
-                </div>
-                
-                <!-- Opacity -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Opacity</span>
-                        <span id="p-opacity-value">0.7</span>
-                    </label>
-                    <input type="range" id="p-opacity" min="0" max="1" step="0.1" value="0.7" style="width: 100%;">
-                </div>
-                
-                <!-- Opacity Random -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-opacity-random" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Random Opacity</span>
-                    </label>
-                </div>
-                
-                <!-- Opacity Animation -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-opacity-anim" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Animate Opacity</span>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- LINE LINKED SECTION -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 12px; color: rgba(255, 255, 255, 0.8); margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid rgba(128, 128, 128, 0.3); padding-bottom: 8px;">LINES / CONNECTIONS</div>
-                
-                <!-- Enable Lines -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-line-enable" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Enable Lines</span>
-                    </label>
-                </div>
-                
-                <!-- Line Color -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Line Color</label>
-                    <input type="color" id="p-line-color" value="#ffffff" style="width: 100%; height: 35px; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; background: rgba(0, 0, 0, 0.3); cursor: pointer;">
-                </div>
-                
-                <!-- Line Distance -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Distance</span>
-                        <span id="p-line-distance-value">150</span>
-                    </label>
-                    <input type="range" id="p-line-distance" min="50" max="400" step="10" value="150" style="width: 100%;">
-                </div>
-                
-                <!-- Line Opacity -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Line Opacity</span>
-                        <span id="p-line-opacity-value">0.4</span>
-                    </label>
-                    <input type="range" id="p-line-opacity" min="0" max="1" step="0.05" value="0.4" style="width: 100%;">
-                </div>
-                
-                <!-- Line Width -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Line Width</span>
-                        <span id="p-line-width-value">1</span>
-                    </label>
-                    <input type="range" id="p-line-width" min="0.5" max="5" step="0.5" value="1" style="width: 100%;">
-                </div>
-            </div>
-            
-            <!-- MOVEMENT SECTION -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 12px; color: rgba(255, 255, 255, 0.8); margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid rgba(128, 128, 128, 0.3); padding-bottom: 8px;">MOVEMENT</div>
-                
-                <!-- Enable Movement -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-move-enable" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Enable Movement</span>
-                    </label>
-                </div>
-                
-                <!-- Speed -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Speed</span>
-                        <span id="p-move-speed-value">6</span>
-                    </label>
-                    <input type="range" id="p-move-speed" min="0" max="20" step="0.5" value="6" style="width: 100%;">
-                </div>
-                
-                <!-- Direction -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Direction</label>
-                    <select id="p-move-direction" style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer;">
-                        <option value="none">None</option>
-                        <option value="top">Top</option>
-                        <option value="top-right">Top Right</option>
-                        <option value="right">Right</option>
-                        <option value="bottom-right">Bottom Right</option>
-                        <option value="bottom">Bottom</option>
-                        <option value="bottom-left">Bottom Left</option>
-                        <option value="left">Left</option>
-                        <option value="top-left">Top Left</option>
-                    </select>
-                </div>
-                
-                <!-- Random Movement -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-move-random" style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Random Movement</span>
-                    </label>
-                </div>
-                
-                <!-- Straight Lines -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-move-straight" style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Straight Lines</span>
-                    </label>
-                </div>
-                
-                <!-- Out Mode -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Out Mode</label>
-                    <select id="p-move-out-mode" style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer;">
-                        <option value="out">Out</option>
-                        <option value="bounce">Bounce</option>
-                    </select>
-                </div>
-                
-                <!-- Bounce -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-move-bounce" style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Bounce</span>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- INTERACTIVITY SECTION -->
-            <div style="margin-bottom: 20px;">
-                <div class="info-label" style="font-size: 12px; color: rgba(255, 255, 255, 0.8); margin-bottom: 15px; font-weight: 700; border-bottom: 1px solid rgba(128, 128, 128, 0.3); padding-bottom: 8px;">INTERACTIVITY</div>
-                
-                <!-- Hover Mode -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-hover-enable" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Enable Hover</span>
-                    </label>
-                </div>
-                
-                <!-- Hover Mode Type -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Hover Mode</label>
-                    <select id="p-hover-mode" style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer;">
-                        <option value="grab">Grab</option>
-                        <option value="bubble">Bubble</option>
-                        <option value="repulse">Repulse</option>
-                    </select>
-                </div>
-                
-                <!-- Click Mode -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="p-click-enable" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <span style="font-size: 10px; color: rgba(255, 255, 255, 0.5);">Enable Click</span>
-                    </label>
-                </div>
-                
-                <!-- Click Mode Type -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">Click Mode</label>
-                    <select id="p-click-mode" style="width: 100%; padding: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer;">
-                        <option value="push">Push</option>
-                        <option value="remove">Remove</option>
-                        <option value="bubble">Bubble</option>
-                        <option value="repulse">Repulse</option>
-                    </select>
-                </div>
-                
-                <!-- Repulse Distance -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px;">
-                        <span>Repulse Distance</span>
-                        <span id="p-repulse-distance-value">200</span>
-                    </label>
-                    <input type="range" id="p-repulse-distance" min="50" max="500" step="10" value="200" style="width: 100%;">
-                </div>
-            </div>
-            
-            <!-- Reset Button -->
-            <button id="particle-reset-btn" style="width: 100%; padding: 12px; background: rgba(128, 128, 128, 0.4); border: 1px solid rgba(128, 128, 128, 0.6); border-radius: 6px; color: #fff; cursor: pointer; font-size: 11px; font-weight: 600; font-family: 'Orbitron', sans-serif;">
-                RESET TO DEFAULTS
-            </button>
-            
-        </div>
-        <!-- Resize Handle -->
-        <div id="particle-resize-handle" style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(128, 128, 128, 0.5) 50%); border-bottom-right-radius: 16px;"></div>
     </div>
 
     <!-- Cube Face Control Panel -->

@@ -537,10 +537,6 @@
             background: rgba(128, 128, 128, 0.6);
             border-color: rgba(128, 128, 128, 0.9);
         }
-        
-        .control-btn.hidden {
-            display: none;
-        }
 
         /* Transform Panel */
         #transform-panel {

@@ -45,14 +45,6 @@
         // MySpace (grid sphere) state
         let mySpaceExpanded = true;
         
-        // OmniConduit Reality Node Network System
-        let realityNodes = {};
-        let omniConduits = [];
-        let currentNode = null;
-        let isTraversing = false;
-        const NODE_SPACING = 150; // Distance between node centers
-        const CONDUIT_RADIUS = 8; // Cylinder radius for all conduits
-        
         // Particle Energy State variables
         let particleSystem = null;
         let particleCount = 3000;
@@ -1887,601 +1879,6 @@
             }
         }
 
-        function setupParticleControlPanel() {
-            const panel = document.getElementById('particle-panel');
-            const minimizeBtn = document.getElementById('particle-minimize-btn');
-            const closeBtn = document.getElementById('particle-close-btn');
-            const panelHeader = document.getElementById('particle-panel-header');
-            const panelContent = document.getElementById('particle-panel-content');
-            
-            // Panel controls
-            if (minimizeBtn && panelContent && panel) {
-                minimizeBtn.addEventListener('click', () => {
-                    panel.classList.toggle('minimized');
-                    panelContent.classList.toggle('hidden');
-                    playSound('passive');
-                });
-            }
-            
-            if (closeBtn && panel) {
-                closeBtn.addEventListener('click', () => {
-                    panel.style.display = 'none';
-                    playSound('passive');
-                });
-            }
-            
-            // Make panel draggable
-            if (panelHeader && panel) {
-                let isDragging = false;
-                let currentX, currentY, initialX, initialY;
-                
-                panelHeader.addEventListener('mousedown', (e) => {
-                    if (e.target.classList.contains('panel-btn')) return;
-                    isDragging = true;
-                    initialX = e.clientX - panel.offsetLeft;
-                    initialY = e.clientY - panel.offsetTop;
-                });
-                
-                document.addEventListener('mousemove', (e) => {
-                    if (isDragging) {
-                        e.preventDefault();
-                        currentX = e.clientX - initialX;
-                        currentY = e.clientY - initialY;
-                        panel.style.left = currentX + 'px';
-                        panel.style.top = currentY + 'px';
-                    }
-                });
-                
-                document.addEventListener('mouseup', () => {
-                    isDragging = false;
-                });
-            }
-            
-            // Get all controls
-            const numberSlider = document.getElementById('p-number');
-            const numberValue = document.getElementById('p-number-value');
-            const colorPicker = document.getElementById('p-color');
-            const shapePicker = document.getElementById('p-shape');
-            const sizeSlider = document.getElementById('p-size');
-            const sizeValue = document.getElementById('p-size-value');
-            const sizeRandomCheck = document.getElementById('p-size-random');
-            const sizeAnimCheck = document.getElementById('p-size-anim');
-            const sizeAnimSpeedSlider = document.getElementById('p-size-anim-speed');
-            const sizeAnimSpeedValue = document.getElementById('p-size-anim-speed-value');
-            const opacitySlider = document.getElementById('p-opacity');
-            const opacityValue = document.getElementById('p-opacity-value');
-            const opacityRandomCheck = document.getElementById('p-opacity-random');
-            const opacityAnimCheck = document.getElementById('p-opacity-anim');
-            
-            const lineEnableCheck = document.getElementById('p-line-enable');
-            const lineColorPicker = document.getElementById('p-line-color');
-            const lineDistanceSlider = document.getElementById('p-line-distance');
-            const lineDistanceValue = document.getElementById('p-line-distance-value');
-            const lineOpacitySlider = document.getElementById('p-line-opacity');
-            const lineOpacityValue = document.getElementById('p-line-opacity-value');
-            const lineWidthSlider = document.getElementById('p-line-width');
-            const lineWidthValue = document.getElementById('p-line-width-value');
-            
-            const moveEnableCheck = document.getElementById('p-move-enable');
-            const moveSpeedSlider = document.getElementById('p-move-speed');
-            const moveSpeedValue = document.getElementById('p-move-speed-value');
-            const moveDirectionSelect = document.getElementById('p-move-direction');
-            const moveRandomCheck = document.getElementById('p-move-random');
-            const moveStraightCheck = document.getElementById('p-move-straight');
-            const moveOutModeSelect = document.getElementById('p-move-out-mode');
-            const moveBounceCheck = document.getElementById('p-move-bounce');
-            
-            const hoverEnableCheck = document.getElementById('p-hover-enable');
-            const hoverModeSelect = document.getElementById('p-hover-mode');
-            const clickEnableCheck = document.getElementById('p-click-enable');
-            const clickModeSelect = document.getElementById('p-click-mode');
-            const repulseDistanceSlider = document.getElementById('p-repulse-distance');
-            const repulseDistanceValue = document.getElementById('p-repulse-distance-value');
-            
-            const resetBtn = document.getElementById('particle-reset-btn');
-            
-            // Particle Number
-            if (numberSlider && numberValue) {
-                numberSlider.addEventListener('input', (e) => {
-                    const value = parseInt(e.target.value);
-                    numberValue.textContent = value;
-                    updateParticles({ count: value });
-                });
-            }
-            
-            // Particle Color
-            if (colorPicker) {
-                colorPicker.addEventListener('input', (e) => {
-                    updateParticles({ particleColor: e.target.value });
-                });
-            }
-            
-            // Shape
-            if (shapePicker) {
-                shapePicker.addEventListener('change', (e) => {
-                    updateParticles({ shape: e.target.value });
-                });
-            }
-            
-            // Size
-            if (sizeSlider && sizeValue) {
-                sizeSlider.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    sizeValue.textContent = value;
-                    updateParticles({ size: value });
-                });
-            }
-            
-            // Size Random
-            if (sizeRandomCheck) {
-                sizeRandomCheck.addEventListener('change', (e) => {
-                    updateParticles({ sizeRandom: e.target.checked });
-                });
-            }
-            
-            // Size Animation
-            if (sizeAnimCheck) {
-                sizeAnimCheck.addEventListener('change', (e) => {
-                    updateParticles({ sizeAnim: e.target.checked });
-                });
-            }
-            
-            // Size Animation Speed
-            if (sizeAnimSpeedSlider && sizeAnimSpeedValue) {
-                sizeAnimSpeedSlider.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    sizeAnimSpeedValue.textContent = value;
-                    updateParticles({ sizeAnimSpeed: value });
-                });
-            }
-            
-            // Opacity
-            if (opacitySlider && opacityValue) {
-                opacitySlider.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    opacityValue.textContent = value;
-                    updateParticles({ opacity: value });
-                });
-            }
-            
-            // Opacity Random
-            if (opacityRandomCheck) {
-                opacityRandomCheck.addEventListener('change', (e) => {
-                    updateParticles({ opacityRandom: e.target.checked });
-                });
-            }
-            
-            // Opacity Animation
-            if (opacityAnimCheck) {
-                opacityAnimCheck.addEventListener('change', (e) => {
-                    updateParticles({ opacityAnim: e.target.checked });
-                });
-            }
-            
-            // Line Enable
-            if (lineEnableCheck) {
-                lineEnableCheck.addEventListener('change', (e) => {
-                    updateParticles({ lineEnable: e.target.checked });
-                });
-            }
-            
-            // Line Color
-            if (lineColorPicker) {
-                lineColorPicker.addEventListener('input', (e) => {
-                    updateParticles({ lineColor: e.target.value });
-                });
-            }
-            
-            // Line Distance
-            if (lineDistanceSlider && lineDistanceValue) {
-                lineDistanceSlider.addEventListener('input', (e) => {
-                    const value = parseInt(e.target.value);
-                    lineDistanceValue.textContent = value;
-                    updateParticles({ lineDistance: value });
-                });
-            }
-            
-            // Line Opacity
-            if (lineOpacitySlider && lineOpacityValue) {
-                lineOpacitySlider.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    lineOpacityValue.textContent = value;
-                    updateParticles({ lineOpacity: value });
-                });
-            }
-            
-            // Line Width
-            if (lineWidthSlider && lineWidthValue) {
-                lineWidthSlider.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    lineWidthValue.textContent = value;
-                    updateParticles({ lineWidth: value });
-                });
-            }
-            
-            // Move Enable
-            if (moveEnableCheck) {
-                moveEnableCheck.addEventListener('change', (e) => {
-                    updateParticles({ moveEnable: e.target.checked });
-                });
-            }
-            
-            // Move Speed
-            if (moveSpeedSlider && moveSpeedValue) {
-                moveSpeedSlider.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    moveSpeedValue.textContent = value;
-                    updateParticles({ speed: value });
-                });
-            }
-            
-            // Move Direction
-            if (moveDirectionSelect) {
-                moveDirectionSelect.addEventListener('change', (e) => {
-                    updateParticles({ moveDirection: e.target.value });
-                });
-            }
-            
-            // Move Random
-            if (moveRandomCheck) {
-                moveRandomCheck.addEventListener('change', (e) => {
-                    updateParticles({ moveRandom: e.target.checked });
-                });
-            }
-            
-            // Move Straight
-            if (moveStraightCheck) {
-                moveStraightCheck.addEventListener('change', (e) => {
-                    updateParticles({ moveStraight: e.target.checked });
-                });
-            }
-            
-            // Move Out Mode
-            if (moveOutModeSelect) {
-                moveOutModeSelect.addEventListener('change', (e) => {
-                    updateParticles({ moveOutMode: e.target.value });
-                });
-            }
-            
-            // Move Bounce
-            if (moveBounceCheck) {
-                moveBounceCheck.addEventListener('change', (e) => {
-                    updateParticles({ moveBounce: e.target.checked });
-                });
-            }
-            
-            // Hover Enable
-            if (hoverEnableCheck) {
-                hoverEnableCheck.addEventListener('change', (e) => {
-                    updateParticles({ hoverEnable: e.target.checked });
-                });
-            }
-            
-            // Hover Mode
-            if (hoverModeSelect) {
-                hoverModeSelect.addEventListener('change', (e) => {
-                    updateParticles({ hoverMode: e.target.value });
-                });
-            }
-            
-            // Click Enable
-            if (clickEnableCheck) {
-                clickEnableCheck.addEventListener('change', (e) => {
-                    updateParticles({ clickEnable: e.target.checked });
-                });
-            }
-            
-            // Click Mode
-            if (clickModeSelect) {
-                clickModeSelect.addEventListener('change', (e) => {
-                    updateParticles({ clickMode: e.target.value });
-                });
-            }
-            
-            // Repulse Distance
-            if (repulseDistanceSlider && repulseDistanceValue) {
-                repulseDistanceSlider.addEventListener('input', (e) => {
-                    const value = parseInt(e.target.value);
-                    repulseDistanceValue.textContent = value;
-                    updateParticles({ repulseDistance: value });
-                });
-            }
-            
-            // Reset button
-            if (resetBtn) {
-                resetBtn.addEventListener('click', () => {
-                    // Reset all controls to defaults
-                    if (numberSlider) { numberSlider.value = 80; numberValue.textContent = '80'; }
-                    if (colorPicker) { colorPicker.value = '#ffffff'; }
-                    if (shapePicker) { shapePicker.value = 'circle'; }
-                    if (sizeSlider) { sizeSlider.value = 3; sizeValue.textContent = '3'; }
-                    if (sizeRandomCheck) { sizeRandomCheck.checked = true; }
-                    if (sizeAnimCheck) { sizeAnimCheck.checked = true; }
-                    if (sizeAnimSpeedSlider) { sizeAnimSpeedSlider.value = 3; sizeAnimSpeedValue.textContent = '3'; }
-                    if (opacitySlider) { opacitySlider.value = 0.7; opacityValue.textContent = '0.7'; }
-                    if (opacityRandomCheck) { opacityRandomCheck.checked = true; }
-                    if (opacityAnimCheck) { opacityAnimCheck.checked = true; }
-                    
-                    if (lineEnableCheck) { lineEnableCheck.checked = true; }
-                    if (lineColorPicker) { lineColorPicker.value = '#ffffff'; }
-                    if (lineDistanceSlider) { lineDistanceSlider.value = 150; lineDistanceValue.textContent = '150'; }
-                    if (lineOpacitySlider) { lineOpacitySlider.value = 0.4; lineOpacityValue.textContent = '0.4'; }
-                    if (lineWidthSlider) { lineWidthSlider.value = 1; lineWidthValue.textContent = '1'; }
-                    
-                    if (moveEnableCheck) { moveEnableCheck.checked = true; }
-                    if (moveSpeedSlider) { moveSpeedSlider.value = 6; moveSpeedValue.textContent = '6'; }
-                    if (moveDirectionSelect) { moveDirectionSelect.value = 'none'; }
-                    if (moveRandomCheck) { moveRandomCheck.checked = false; }
-                    if (moveStraightCheck) { moveStraightCheck.checked = false; }
-                    if (moveOutModeSelect) { moveOutModeSelect.value = 'out'; }
-                    if (moveBounceCheck) { moveBounceCheck.checked = false; }
-                    
-                    if (hoverEnableCheck) { hoverEnableCheck.checked = true; }
-                    if (hoverModeSelect) { hoverModeSelect.value = 'repulse'; }
-                    if (clickEnableCheck) { clickEnableCheck.checked = true; }
-                    if (clickModeSelect) { clickModeSelect.value = 'push'; }
-                    if (repulseDistanceSlider) { repulseDistanceSlider.value = 200; repulseDistanceValue.textContent = '200'; }
-                    
-                    // Reinitialize particles with defaults
-                    updateParticles({
-                        count: 80,
-                        particleColor: '#ffffff',
-                        shape: 'circle',
-                        size: 3,
-                        sizeRandom: true,
-                        sizeAnim: true,
-                        sizeAnimSpeed: 3,
-                        opacity: 0.7,
-                        opacityRandom: true,
-                        opacityAnim: true,
-                        lineEnable: true,
-                        lineColor: '#ffffff',
-                        lineDistance: 150,
-                        lineOpacity: 0.4,
-                        lineWidth: 1,
-                        moveEnable: true,
-                        speed: 6,
-                        moveDirection: 'none',
-                        moveRandom: false,
-                        moveStraight: false,
-                        moveOutMode: 'out',
-                        moveBounce: false,
-                        hoverEnable: true,
-                        hoverMode: 'repulse',
-                        clickEnable: true,
-                        clickMode: 'push',
-                        repulseDistance: 200
-                    });
-                    
-                    playSound('active');
-                });
-            }
-        }
-
-        function updateParticles(config) {
-            if (!window.pJSDom || !window.pJSDom[0]) return;
-            
-            const pJS = window.pJSDom[0].pJS;
-            
-            // Update particle count
-            if (config.count !== undefined) {
-                pJS.particles.number.value = config.count;
-                pJS.fn.particlesRefresh();
-            }
-            
-            // Update particle color
-            if (config.particleColor !== undefined) {
-                pJS.particles.color.value = config.particleColor;
-                pJS.particles.array.forEach(p => {
-                    p.color.value = config.particleColor;
-                });
-            }
-            
-            // Update shape
-            if (config.shape !== undefined) {
-                pJS.particles.shape.type = config.shape;
-                pJS.fn.particlesRefresh();
-            }
-            
-            // Update particle size
-            if (config.size !== undefined) {
-                pJS.particles.size.value = config.size;
-                pJS.particles.array.forEach(p => {
-                    p.radius = config.size;
-                });
-            }
-            
-            // Update size random
-            if (config.sizeRandom !== undefined) {
-                pJS.particles.size.random = config.sizeRandom;
-            }
-            
-            // Update size animation
-            if (config.sizeAnim !== undefined) {
-                pJS.particles.size.anim.enable = config.sizeAnim;
-            }
-            
-            // Update size animation speed
-            if (config.sizeAnimSpeed !== undefined) {
-                pJS.particles.size.anim.speed = config.sizeAnimSpeed;
-            }
-            
-            // Update opacity
-            if (config.opacity !== undefined) {
-                pJS.particles.opacity.value = config.opacity;
-            }
-            
-            // Update opacity random
-            if (config.opacityRandom !== undefined) {
-                pJS.particles.opacity.random = config.opacityRandom;
-            }
-            
-            // Update opacity animation
-            if (config.opacityAnim !== undefined) {
-                pJS.particles.opacity.anim.enable = config.opacityAnim;
-            }
-            
-            // Update line enable
-            if (config.lineEnable !== undefined) {
-                pJS.particles.line_linked.enable = config.lineEnable;
-            }
-            
-            // Update line color
-            if (config.lineColor !== undefined) {
-                pJS.particles.line_linked.color = config.lineColor;
-            }
-            
-            // Update line distance
-            if (config.lineDistance !== undefined) {
-                pJS.particles.line_linked.distance = config.lineDistance;
-            }
-            
-            // Update line opacity
-            if (config.lineOpacity !== undefined) {
-                pJS.particles.line_linked.opacity = config.lineOpacity;
-            }
-            
-            // Update line width
-            if (config.lineWidth !== undefined) {
-                pJS.particles.line_linked.width = config.lineWidth;
-            }
-            
-            // Update move enable
-            if (config.moveEnable !== undefined) {
-                pJS.particles.move.enable = config.moveEnable;
-            }
-            
-            // Update move speed
-            if (config.speed !== undefined) {
-                pJS.particles.move.speed = config.speed;
-                pJS.particles.array.forEach(p => {
-                    const angle = p.vs || 0;
-                    p.vx = Math.cos(angle) * config.speed;
-                    p.vy = Math.sin(angle) * config.speed;
-                });
-            }
-            
-            // Update move direction
-            if (config.moveDirection !== undefined) {
-                pJS.particles.move.direction = config.moveDirection;
-            }
-            
-            // Update move random
-            if (config.moveRandom !== undefined) {
-                pJS.particles.move.random = config.moveRandom;
-            }
-            
-            // Update move straight
-            if (config.moveStraight !== undefined) {
-                pJS.particles.move.straight = config.moveStraight;
-            }
-            
-            // Update move out mode
-            if (config.moveOutMode !== undefined) {
-                pJS.particles.move.out_mode = config.moveOutMode;
-            }
-            
-            // Update move bounce
-            if (config.moveBounce !== undefined) {
-                pJS.particles.move.bounce = config.moveBounce;
-            }
-            
-            // Update hover enable
-            if (config.hoverEnable !== undefined) {
-                pJS.interactivity.events.onhover.enable = config.hoverEnable;
-            }
-            
-            // Update hover mode
-            if (config.hoverMode !== undefined) {
-                pJS.interactivity.events.onhover.mode = config.hoverMode;
-            }
-            
-            // Update click enable
-            if (config.clickEnable !== undefined) {
-                pJS.interactivity.events.onclick.enable = config.clickEnable;
-            }
-            
-            // Update click mode
-            if (config.clickMode !== undefined) {
-                pJS.interactivity.events.onclick.mode = config.clickMode;
-            }
-            
-            // Update repulse distance
-            if (config.repulseDistance !== undefined) {
-                pJS.interactivity.modes.repulse.distance = config.repulseDistance;
-            }
-        }
-
-        function setupMobilePanelDrag() {
-            // Add tap-and-hold drag for ALL panels on mobile/touch devices (minimized OR maximized)
-            const panels = document.querySelectorAll('.panel, #omnikeys-panel, #help-panel, #particle-panel, #inspector-panel, #view-panel, #myspace-grid-panel, #cube-face-panel');
-            
-            panels.forEach(panel => {
-                let holdTimeout;
-                let isDragging = false;
-                let startX, startY, initialX, initialY;
-                
-                const panelHeader = panel.querySelector('.panel-header');
-                if (!panelHeader) return;
-                
-                // Touch start
-                panelHeader.addEventListener('touchstart', (e) => {
-                    // Don't interfere with panel buttons
-                    if (e.target.classList.contains('panel-btn')) return;
-                    
-                    const touch = e.touches[0];
-                    startX = touch.clientX;
-                    startY = touch.clientY;
-                    
-                    const rect = panel.getBoundingClientRect();
-                    initialX = rect.left;
-                    initialY = rect.top;
-                    
-                    // Wait 500ms for tap-and-hold
-                    holdTimeout = setTimeout(() => {
-                        isDragging = true;
-                        panel.style.transition = 'none';
-                        panelHeader.style.cursor = 'grabbing';
-                        // Visual feedback - slight opacity change
-                        panel.style.opacity = '0.9';
-                    }, 500);
-                });
-                
-                // Touch move
-                panelHeader.addEventListener('touchmove', (e) => {
-                    if (!isDragging) return;
-                    
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    const deltaX = touch.clientX - startX;
-                    const deltaY = touch.clientY - startY;
-                    
-                    panel.style.left = (initialX + deltaX) + 'px';
-                    panel.style.top = (initialY + deltaY) + 'px';
-                });
-                
-                // Touch end
-                panelHeader.addEventListener('touchend', () => {
-                    clearTimeout(holdTimeout);
-                    if (isDragging) {
-                        isDragging = false;
-                        panel.style.transition = '';
-                        panelHeader.style.cursor = '';
-                        panel.style.opacity = '';
-                    }
-                });
-                
-                // Touch cancel
-                panelHeader.addEventListener('touchcancel', () => {
-                    clearTimeout(holdTimeout);
-                    isDragging = false;
-                    panel.style.transition = '';
-                    panelHeader.style.cursor = '';
-                    panel.style.opacity = '';
-                });
-            });
-        }
-
         function getCurrentKey() {
             return omniKeyboardCubes.find(cube => 
                 cube.userData.rowIndex === omniKeyboardCurrentRow &&
@@ -4246,554 +3643,6 @@
             console.log('Clicked key:', keyCube.userData.label);
         }
 
-        // ========================================
-        // OMNICONDUIT REALITY NODE NETWORK SYSTEM
-        // ========================================
-        
-        class OmniConduit {
-            constructor(config) {
-                this.id = config.id || `conduit_${Date.now()}`;
-                this.originNode = config.originNode;
-                this.destinationNode = config.destinationNode;
-                this.directionality = config.directionality || 'two-way';
-                this.traversalMode = config.traversalMode || 'instant';
-                this.transformationRules = config.transformationRules || {
-                    identity: 'preserve',
-                    environment: 'inherit',
-                    physics: 'inherit'
-                };
-                this.stability = config.stability || 'stable';
-                this.triggerConditions = config.triggerConditions || 'none';
-                this.geometry = 'cylinder';
-                this.cylinderRadius = config.cylinderRadius || CONDUIT_RADIUS;
-                
-                // Auto-calculate cylinder length based on node distance
-                const origin = realityNodes[this.originNode];
-                const destination = realityNodes[this.destinationNode];
-                if (origin && destination) {
-                    const dx = destination.position.x - origin.position.x;
-                    const dy = destination.position.y - origin.position.y;
-                    const dz = destination.position.z - origin.position.z;
-                    this.cylinderLength = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                } else {
-                    this.cylinderLength = 0;
-                }
-                
-                this.mesh = null; // Will hold Three.js cylinder mesh
-            }
-            
-            createMesh() {
-                const origin = realityNodes[this.originNode];
-                const destination = realityNodes[this.destinationNode];
-                
-                if (!origin || !destination) {
-                    console.error('Cannot create conduit mesh: nodes not found');
-                    return null;
-                }
-                
-                // Create cylinder geometry
-                const geometry = new THREE.CylinderGeometry(
-                    this.cylinderRadius,
-                    this.cylinderRadius,
-                    this.cylinderLength,
-                    16,
-                    1,
-                    false
-                );
-                
-                // Semi-transparent material with glow
-                const material = new THREE.MeshBasicMaterial({
-                    color: 0xffffff,
-                    transparent: true,
-                    opacity: 0.15,
-                    side: THREE.DoubleSide
-                });
-                
-                this.mesh = new THREE.Mesh(geometry, material);
-                
-                // Position at midpoint between nodes
-                const midpoint = new THREE.Vector3(
-                    (origin.position.x + destination.position.x) / 2,
-                    (origin.position.y + destination.position.y) / 2,
-                    (origin.position.z + destination.position.z) / 2
-                );
-                this.mesh.position.copy(midpoint);
-                
-                // Orient cylinder to point from origin to destination
-                const direction = new THREE.Vector3(
-                    destination.position.x - origin.position.x,
-                    destination.position.y - origin.position.y,
-                    destination.position.z - origin.position.z
-                );
-                direction.normalize();
-                
-                // Default cylinder points along Y-axis, so we need to rotate it
-                const up = new THREE.Vector3(0, 1, 0);
-                const quaternion = new THREE.Quaternion();
-                quaternion.setFromUnitVectors(up, direction);
-                this.mesh.setRotationFromQuaternion(quaternion);
-                
-                // Add wireframe for visibility
-                const wireframeGeometry = new THREE.CylinderGeometry(
-                    this.cylinderRadius,
-                    this.cylinderRadius,
-                    this.cylinderLength,
-                    8,
-                    1,
-                    false
-                );
-                const wireframeMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xffffff,
-                    wireframe: true,
-                    transparent: true,
-                    opacity: 0.3
-                });
-                const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
-                this.mesh.add(wireframe);
-                
-                // Tag for identification
-                this.mesh.userData.type = 'omniConduit';
-                this.mesh.userData.conduitId = this.id;
-                this.mesh.userData.originNode = this.originNode;
-                this.mesh.userData.destinationNode = this.destinationNode;
-                
-                return this.mesh;
-            }
-        }
-        
-        class RealityNode {
-            constructor(config) {
-                this.id = config.id;
-                this.name = config.name || config.id;
-                this.position = config.position || { x: 0, y: 0, z: 0 };
-                this.size = config.size || 30; // Radius
-                this.type = config.type || 'space';
-                this.environment = config.environment || 'default';
-                this.isActive = config.isActive || false;
-                this.mesh = config.mesh || null; // Link to existing sphere if provided
-            }
-        }
-        
-        function initializeOmniConduitSystem() {
-            console.log('Initializing OmniConduit Reality Node Network...');
-            
-            // Create mySpace node (existing landing zone at y=30)
-            realityNodes['mySpace'] = new RealityNode({
-                id: 'mySpace',
-                name: 'MySpace Landing Zone',
-                position: { x: 0, y: 30, z: 0 },
-                size: 30,
-                type: 'landing',
-                environment: 'default',
-                isActive: true,
-                mesh: window.mySpaceSphere // Link to existing sphere
-            });
-            
-            // Create 7 surrounding spaces
-            realityNodes['frontSpace'] = new RealityNode({
-                id: 'frontSpace',
-                name: 'Front Space',
-                position: { x: 0, y: 30, z: -NODE_SPACING },
-                size: 30,
-                type: 'space',
-                environment: 'front'
-            });
-            
-            realityNodes['backSpace'] = new RealityNode({
-                id: 'backSpace',
-                name: 'Back Space',
-                position: { x: 0, y: 30, z: NODE_SPACING },
-                size: 30,
-                type: 'space',
-                environment: 'back'
-            });
-            
-            realityNodes['topDiagonalLeft'] = new RealityNode({
-                id: 'topDiagonalLeft',
-                name: 'Top Diagonal Left',
-                position: { x: -NODE_SPACING, y: 30 + NODE_SPACING, z: 0 },
-                size: 30,
-                type: 'space',
-                environment: 'upper'
-            });
-            
-            realityNodes['topDiagonalRight'] = new RealityNode({
-                id: 'topDiagonalRight',
-                name: 'Top Diagonal Right',
-                position: { x: NODE_SPACING, y: 30 + NODE_SPACING, z: 0 },
-                size: 30,
-                type: 'space',
-                environment: 'upper'
-            });
-            
-            realityNodes['bottomDiagonalLeft'] = new RealityNode({
-                id: 'bottomDiagonalLeft',
-                name: 'Bottom Diagonal Left',
-                position: { x: -NODE_SPACING, y: 30 - NODE_SPACING, z: 0 },
-                size: 30,
-                type: 'space',
-                environment: 'lower'
-            });
-            
-            realityNodes['bottomDiagonalRight'] = new RealityNode({
-                id: 'bottomDiagonalRight',
-                name: 'Bottom Diagonal Right',
-                position: { x: NODE_SPACING, y: 30 - NODE_SPACING, z: 0 },
-                size: 30,
-                type: 'space',
-                environment: 'lower'
-            });
-            
-            realityNodes['behindSpace'] = new RealityNode({
-                id: 'behindSpace',
-                name: 'Behind Space (Rear Layer)',
-                position: { x: 0, y: 30, z: NODE_SPACING * 2 },
-                size: 30,
-                type: 'space',
-                environment: 'rear'
-            });
-            
-            // Additional horizontal nodes at same Y level (30)
-            realityNodes['leftSpace'] = new RealityNode({
-                id: 'leftSpace',
-                name: 'Left Space',
-                position: { x: -NODE_SPACING, y: 30, z: 0 },
-                size: 30,
-                type: 'space',
-                environment: 'left'
-            });
-            
-            realityNodes['rightSpace'] = new RealityNode({
-                id: 'rightSpace',
-                name: 'Right Space',
-                position: { x: NODE_SPACING, y: 30, z: 0 },
-                size: 30,
-                type: 'space',
-                environment: 'right'
-            });
-            
-            realityNodes['frontLeftSpace'] = new RealityNode({
-                id: 'frontLeftSpace',
-                name: 'Front Left Space',
-                position: { x: -NODE_SPACING, y: 30, z: -NODE_SPACING },
-                size: 30,
-                type: 'space',
-                environment: 'front-left'
-            });
-            
-            realityNodes['frontRightSpace'] = new RealityNode({
-                id: 'frontRightSpace',
-                name: 'Front Right Space',
-                position: { x: NODE_SPACING, y: 30, z: -NODE_SPACING },
-                size: 30,
-                type: 'space',
-                environment: 'front-right'
-            });
-            
-            realityNodes['rearLeftSpace'] = new RealityNode({
-                id: 'rearLeftSpace',
-                name: 'Rear Left Space',
-                position: { x: -NODE_SPACING, y: 30, z: NODE_SPACING },
-                size: 30,
-                type: 'space',
-                environment: 'rear-left'
-            });
-            
-            realityNodes['rearRightSpace'] = new RealityNode({
-                id: 'rearRightSpace',
-                name: 'Rear Right Space',
-                position: { x: NODE_SPACING, y: 30, z: NODE_SPACING },
-                size: 30,
-                type: 'space',
-                environment: 'rear-right'
-            });
-            
-            // Set current node
-            currentNode = 'mySpace';
-            
-            // Create conduits connecting mySpace to all surrounding spaces
-            const connections = [
-                ['mySpace', 'frontSpace'],
-                ['mySpace', 'backSpace'],
-                ['mySpace', 'leftSpace'],
-                ['mySpace', 'rightSpace'],
-                ['mySpace', 'topDiagonalLeft'],
-                ['mySpace', 'topDiagonalRight'],
-                ['mySpace', 'bottomDiagonalLeft'],
-                ['mySpace', 'bottomDiagonalRight'],
-                ['mySpace', 'frontLeftSpace'],
-                ['mySpace', 'frontRightSpace'],
-                ['mySpace', 'rearLeftSpace'],
-                ['mySpace', 'rearRightSpace'],
-                ['mySpace', 'behindSpace']
-            ];
-            
-            connections.forEach(([origin, destination]) => {
-                const conduit = new OmniConduit({
-                    id: `${origin}_to_${destination}`,
-                    originNode: origin,
-                    destinationNode: destination,
-                    directionality: 'two-way',
-                    traversalMode: 'instant',
-                    cylinderRadius: CONDUIT_RADIUS
-                });
-                
-                omniConduits.push(conduit);
-                
-                // Create and add mesh to scene
-                const mesh = conduit.createMesh();
-                if (mesh) {
-                    scene.add(mesh);
-                }
-            });
-            
-            // Create sphere meshes for new nodes (not mySpace which already exists)
-            Object.keys(realityNodes).forEach(nodeId => {
-                if (nodeId !== 'mySpace') {
-                    createNodeSphere(nodeId);
-                }
-            });
-            
-            console.log('OmniConduit System initialized:');
-            console.log('- Nodes:', Object.keys(realityNodes).length);
-            console.log('- Conduits:', omniConduits.length);
-            
-            // Output system details to console
-            outputSystemDetails();
-        }
-        
-        function createNodeSphere(nodeId) {
-            const node = realityNodes[nodeId];
-            if (!node) return;
-            
-            // Create sphere geometry matching mySpace
-            const sphereGeometry = new THREE.SphereGeometry(node.size, 32, 32);
-            
-            // Create shader material matching mySpace style
-            const sphereMaterial = new THREE.ShaderMaterial({
-                uniforms: {
-                    color1: { value: new THREE.Color(0xb0b0b0) },
-                    color2: { value: new THREE.Color(0xffffff) }
-                },
-                vertexShader: `
-                    varying vec3 vPosition;
-                    void main() {
-                        vPosition = position;
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    }
-                `,
-                fragmentShader: `
-                    uniform vec3 color1;
-                    uniform vec3 color2;
-                    varying vec3 vPosition;
-                    void main() {
-                        float mixValue = (vPosition.y + 30.0) / 60.0;
-                        gl_FragColor = vec4(mix(color1, color2, mixValue), 0.3);
-                    }
-                `,
-                transparent: true,
-                opacity: 0.3
-            });
-            
-            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-            sphere.position.set(node.position.x, node.position.y, node.position.z);
-            sphere.userData.type = 'reality-node';
-            sphere.userData.nodeId = nodeId;
-            
-            scene.add(sphere);
-            node.mesh = sphere;
-            
-            // Add to interactive objects for clicking
-            interactiveObjects.push(sphere);
-        }
-        
-        function traverseConduit(fromNode, toNode) {
-            if (isTraversing) return;
-            
-            const destNode = realityNodes[toNode];
-            if (!destNode) {
-                console.error('Destination node not found:', toNode);
-                return;
-            }
-            
-            isTraversing = true;
-            console.log(`Traversing from ${fromNode} to ${toNode}`);
-            
-            // Animate camera to destination node
-            gsap.to(camera.position, {
-                duration: 2,
-                x: destNode.position.x,
-                y: destNode.position.y,
-                z: destNode.position.z + 50, // Position in front of node
-                ease: 'power2.inOut',
-                onComplete: () => {
-                    currentNode = toNode;
-                    isTraversing = false;
-                    console.log('Arrived at:', toNode);
-                    playSound('active');
-                }
-            });
-            
-            // Look at destination during travel
-            gsap.to(cameraTarget, {
-                duration: 2,
-                x: destNode.position.x,
-                y: destNode.position.y,
-                z: destNode.position.z,
-                ease: 'power2.inOut'
-            });
-            
-            playSound('passive');
-        }
-        
-        function outputSystemDetails() {
-            console.log('\n═══ OMNICONDUIT SYSTEM DETAILS ═══\n');
-            
-            console.log('REALITY NODES:');
-            Object.keys(realityNodes).forEach(nodeId => {
-                const node = realityNodes[nodeId];
-                console.log(`  ${nodeId}:`);
-                console.log(`    - Name: ${node.name}`);
-                console.log(`    - Position: (${node.position.x}, ${node.position.y}, ${node.position.z})`);
-                console.log(`    - Size: ${node.size}`);
-                console.log(`    - Active: ${node.isActive}`);
-            });
-            
-            console.log('\nOMNICONDUITS:');
-            omniConduits.forEach(conduit => {
-                console.log(`  ${conduit.id}:`);
-                console.log(`    - Origin: ${conduit.originNode}`);
-                console.log(`    - Destination: ${conduit.destinationNode}`);
-                console.log(`    - Length: ${conduit.cylinderLength.toFixed(2)}`);
-                console.log(`    - Radius: ${conduit.cylinderRadius}`);
-                console.log(`    - Directionality: ${conduit.directionality}`);
-            });
-            
-            console.log('\nNETWORK MAP (Top-Down View):');
-            console.log('```');
-            console.log('        [TDL]              [TDR]');
-            console.log('           \\                /   ');
-            console.log('            \\              /    ');
-            console.log('    [FL]-----[FS]-----[FR]      ');
-            console.log('      |       |        |        ');
-            console.log('    [LS]--[mySpace]--[RS]       ');
-            console.log('      |       |        |        ');
-            console.log('    [RL]-----[BS]-----[RR]--[BHS]');
-            console.log('            /              \\    ');
-            console.log('           /                \\   ');
-            console.log('        [BDL]              [BDR]');
-            console.log('```');
-            console.log('Legend:');
-            console.log('  mySpace = MySpace Landing Zone (0, 30, 0)');
-            console.log('  FS = frontSpace (0, 30, -150)');
-            console.log('  BS = backSpace (0, 30, 150)');
-            console.log('  LS = leftSpace (-150, 30, 0)');
-            console.log('  RS = rightSpace (150, 30, 0)');
-            console.log('  FL = frontLeftSpace (-150, 30, -150)');
-            console.log('  FR = frontRightSpace (150, 30, -150)');
-            console.log('  RL = rearLeftSpace (-150, 30, 150)');
-            console.log('  RR = rearRightSpace (150, 30, 150)');
-            console.log('  TDL = topDiagonalLeft (-150, 180, 0)');
-            console.log('  TDR = topDiagonalRight (150, 180, 0)');
-            console.log('  BDL = bottomDiagonalLeft (-150, -120, 0)');
-            console.log('  BDR = bottomDiagonalRight (150, -120, 0)');
-            console.log('  BHS = behindSpace (0, 30, 300)');
-            console.log('\n═══════════════════════════════════\n');
-        }
-        
-        function setupOmniMapPanel() {
-            const panel = document.getElementById('omnimap-panel');
-            const minimizeBtn = document.getElementById('omnimap-minimize-btn');
-            const closeBtn = document.getElementById('omnimap-close-btn');
-            const panelHeader = document.getElementById('omnimap-panel-header');
-            const panelContent = document.getElementById('omnimap-panel-content');
-            
-            // Panel controls
-            if (minimizeBtn && panelContent && panel) {
-                minimizeBtn.addEventListener('click', () => {
-                    panel.classList.toggle('minimized');
-                    panelContent.classList.toggle('hidden');
-                    playSound('passive');
-                });
-            }
-            
-            if (closeBtn && panel) {
-                closeBtn.addEventListener('click', () => {
-                    panel.style.display = 'none';
-                    playSound('passive');
-                });
-            }
-            
-            // Make panel draggable
-            if (panelHeader && panel) {
-                let isDragging = false;
-                let currentX, currentY, initialX, initialY;
-                
-                panelHeader.addEventListener('mousedown', (e) => {
-                    if (e.target.classList.contains('panel-btn')) return;
-                    isDragging = true;
-                    initialX = e.clientX - panel.offsetLeft;
-                    initialY = e.clientY - panel.offsetTop;
-                });
-                
-                document.addEventListener('mousemove', (e) => {
-                    if (isDragging) {
-                        e.preventDefault();
-                        currentX = e.clientX - initialX;
-                        currentY = e.clientY - initialY;
-                        panel.style.left = currentX + 'px';
-                        panel.style.top = currentY + 'px';
-                    }
-                });
-                
-                document.addEventListener('mouseup', () => {
-                    isDragging = false;
-                });
-            }
-            
-            // Node button click handlers
-            const nodeButtons = document.querySelectorAll('.node-btn');
-            nodeButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const targetNode = btn.getAttribute('data-node');
-                    if (targetNode && targetNode !== currentNode) {
-                        // Traverse to the clicked node
-                        traverseConduit(currentNode, targetNode);
-                        
-                        // Update UI
-                        updateOmniMapUI(targetNode);
-                    }
-                });
-            });
-        }
-        
-        function updateOmniMapUI(newCurrentNode) {
-            // Update current node display
-            const display = document.getElementById('current-node-display');
-            if (display && realityNodes[newCurrentNode]) {
-                display.textContent = realityNodes[newCurrentNode].name;
-            }
-            
-            // Update button styles
-            const nodeButtons = document.querySelectorAll('.node-btn');
-            nodeButtons.forEach(btn => {
-                const nodeId = btn.getAttribute('data-node');
-                if (nodeId === newCurrentNode) {
-                    btn.classList.add('active-node');
-                    btn.style.background = 'rgba(0, 255, 0, 0.3)';
-                    btn.style.border = '2px solid rgba(0, 255, 0, 0.8)';
-                    btn.style.color = '#00ff00';
-                    btn.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
-                } else {
-                    btn.classList.remove('active-node');
-                    btn.style.background = 'rgba(128, 128, 128, 0.3)';
-                    btn.style.border = '1px solid rgba(255, 255, 255, 0.4)';
-                    btn.style.color = '#fff';
-                    btn.style.boxShadow = 'none';
-                }
-            });
-        }
-
         function init() {
             // Scene
             scene = new THREE.Scene();
@@ -4801,7 +3650,7 @@
 
             // Camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 30, 15); // Start at height 30
+            camera.position.set(0, 0, 15);
             scene.add(camera); // Add camera to scene so children render
 
             // Renderer
@@ -5358,12 +4207,12 @@
                     });
                     playSound('passive');
                 }
-                // Reset camera position (adjusted for elevated sphere at y=30)
+                // Reset camera position
                 if (key === 'o') {
                     gsap.to(camera.position, {
                         duration: 1.5,
                         x: 0,
-                        y: 30,
+                        y: 0,
                         z: 10,
                         ease: 'power2.inOut'
                     });
@@ -5511,21 +4360,9 @@
             
             // Setup 3D object hover and click interactions
             setup3DObjectInteractions();
-            
-            // Setup particle control panel
-            setupParticleControlPanel();
-            
-            // Setup mobile tap-and-hold drag for minimized panels
-            setupMobilePanelDrag();
-            
-            // Setup OmniMap panel
-            setupOmniMapPanel();
 
             // Apply default theme
             applyTheme('silver');
-
-            // Initialize OmniConduit Reality Node Network
-            initializeOmniConduitSystem();
 
             // Start animation
             animate();
@@ -5539,20 +4376,23 @@
         
         function setupLeftMenuButton() {
             const menuBtn = document.getElementById('btn-menu');
-            const controlButtons = document.querySelector('.control-buttons');
+            const leftMenu = document.getElementById('left-menu');
+            const leftHamburger = document.getElementById('left-hamburger');
             
-            if (menuBtn && controlButtons) {
+            if (menuBtn && leftMenu) {
                 menuBtn.addEventListener('click', () => {
-                    // Toggle all control buttons except the menu button itself
-                    const allButtons = controlButtons.querySelectorAll('.control-btn:not(#btn-menu)');
-                    const verticalButtons = controlButtons.querySelectorAll('.vertical-btn');
+                    // Toggle menu
+                    leftMenu.classList.toggle('open');
+                    if (leftHamburger) {
+                        leftHamburger.classList.toggle('menu-open');
+                    }
                     
-                    allButtons.forEach(btn => {
-                        btn.classList.toggle('hidden');
-                    });
-                    
-                    // Toggle active state on menu button
-                    menuBtn.classList.toggle('active');
+                    // Keep ☰ symbol, just toggle active state
+                    if (leftMenu.classList.contains('open')) {
+                        menuBtn.classList.add('active');
+                    } else {
+                        menuBtn.classList.remove('active');
+                    }
                     
                     playSound('passive');
                 });
@@ -6013,7 +4853,7 @@
                 
                 // Descend with easing
                 const startY = 100000;
-                const endY = 30; // Landing zone at y=30
+                const endY = 15;
                 camera.position.y = startY - (startY - endY) * easedProgress;
                 
                 // Move bright descent cylinder 1.5x faster than camera
@@ -6127,16 +4967,16 @@
             gsap.to(camera.position, {
                 duration: 1.5,
                 x: 0,
-                y: 30,
+                y: 0,
                 z: 15,
                 ease: 'power3.out',
                 onUpdate: () => {
-                    // During transition, gradually face the elevated sphere
-                    camera.lookAt(0, 30, 0);
+                    // During transition, gradually face forward
+                    camera.lookAt(0, 0, 0);
                 },
                 onComplete: () => {
                     // Once at final position, face forward towards horizon
-                    camera.lookAt(0, 30, -100);
+                    camera.lookAt(0, 0, -100);
                 }
             });
             
@@ -7005,11 +5845,11 @@
             
             scene.add(scene3DDataPanel);
             
-            // Move camera to viewing position (adjusted for elevated sphere at y=30)
+            // Move camera to viewing position
             gsap.to(camera.position, {
                 duration: 1.5,
                 x: 0,
-                y: 30,
+                y: 0,
                 z: 15,
                 ease: 'power2.inOut'
             });
@@ -7017,7 +5857,7 @@
             gsap.to(cameraTarget, {
                 duration: 1.5,
                 x: 0,
-                y: 30,
+                y: 0,
                 z: 0,
                 ease: 'power2.inOut'
             });
@@ -9790,6 +8630,13 @@
             leftHamburger.addEventListener('click', () => {
                 leftMenu.classList.toggle('open');
                 leftHamburger.classList.toggle('menu-open');
+                
+                // Also toggle control buttons
+                const controlButtons = document.querySelector('.control-buttons');
+                if (controlButtons) {
+                    controlButtons.classList.toggle('hidden');
+                }
+                
                 playSound('passive');
             });
 
@@ -10909,13 +9756,13 @@
                 particlesJS('particles-js', {
                     particles: {
                         number: {
-                            value: 80,
+                            value: 150,
                             density: {
                                 enable: false
                             }
                         },
                         color: {
-                            value: '#ffffff'
+                            value: ['#0066ff', '#ffffff', '#888888', '#00ffff']
                         },
                         shape: {
                             type: ['circle', 'text'],
@@ -10937,7 +9784,7 @@
                             }
                         },
                         size: {
-                            value: 3,
+                            value: 4,
                             random: true,
                             anim: {
                                 enable: true,
@@ -10948,14 +9795,14 @@
                         },
                         line_linked: {
                             enable: true,
-                            distance: 150,
-                            color: '#ffffff',
-                            opacity: 0.4,
+                            distance: 120,
+                            color: '#0066ff',
+                            opacity: 0.2,
                             width: 1
                         },
                         move: {
                             enable: true,
-                            speed: 6,
+                            speed: 3,
                             direction: 'none',
                             random: false,
                             straight: false,
